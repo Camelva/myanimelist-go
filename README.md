@@ -1,1 +1,3 @@
-# myanimelist-go
+# Myanimelist-go
+
+_More soon_
