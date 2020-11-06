@@ -1,7 +1,6 @@
 package myanimelist
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -93,32 +92,20 @@ type PollOption struct {
 	Votes int    `json:"votes"`
 }
 
-// Next return next result page.
-// If its last page - returns error.
-func (obj *ForumTopic) Next(mal *MAL) (*ForumTopic, error) {
-	nextPageURL := obj.Paging.Next
-	if nextPageURL == "" {
-		return nil, errors.New("latest page")
-	}
-	nextPageData := new(ForumTopic)
-	if err := mal.request(nextPageData, http.MethodGet, nextPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return nextPageData, nil
-}
-
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *ForumTopic) Prev(mal *MAL) (*ForumTopic, error) {
-	prevPageURL := obj.Paging.Previous
-	if prevPageURL == "" {
-		return nil, errors.New("first page")
-	}
-	prevPageData := new(ForumTopic)
-	if err := mal.request(prevPageData, http.MethodGet, prevPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return prevPageData, nil
+func (obj *ForumTopic) Prev(client *MAL, limit ...int) (result *ForumTopic, err error) {
+	result = new(ForumTopic)
+	err = client.getPage(result, obj.Paging, -1, limit)
+	return
+}
+
+// Next return next result page.
+// If its last page - returns error.
+func (obj *ForumTopic) Next(client *MAL, limit ...int) (result *ForumTopic, err error) {
+	result = new(ForumTopic)
+	err = client.getPage(result, obj.Paging, 1, limit)
+	return
 }
 
 // ForumSearchSetting represent advanced search on MyAnimeList forum.
@@ -190,30 +177,18 @@ type ForumUser struct {
 	Name string `json:"name"`
 }
 
-// Next return next result page.
-// If its last page - returns error.
-func (obj *ForumSearchResult) Next(mal *MAL) (*ForumSearchResult, error) {
-	nextPageURL := obj.Paging.Next
-	if nextPageURL == "" {
-		return nil, errors.New("latest page")
-	}
-	nextPageData := new(ForumSearchResult)
-	if err := mal.request(nextPageData, http.MethodGet, nextPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return nextPageData, nil
-}
-
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *ForumSearchResult) Prev(mal *MAL) (*ForumSearchResult, error) {
-	prevPageURL := obj.Paging.Previous
-	if prevPageURL == "" {
-		return nil, errors.New("first page")
-	}
-	prevPageData := new(ForumSearchResult)
-	if err := mal.request(prevPageData, http.MethodGet, prevPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return prevPageData, nil
+func (obj *ForumSearchResult) Prev(client *MAL, limit ...int) (result *ForumSearchResult, err error) {
+	result = new(ForumSearchResult)
+	err = client.getPage(result, obj.Paging, -1, limit)
+	return
+}
+
+// Next return next result page.
+// If its last page - returns error.
+func (obj *ForumSearchResult) Next(client *MAL, limit ...int) (result *ForumSearchResult, err error) {
+	result = new(ForumSearchResult)
+	err = client.getPage(result, obj.Paging, 1, limit)
+	return
 }

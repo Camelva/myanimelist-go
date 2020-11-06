@@ -33,32 +33,20 @@ type AnimeSearchResult struct {
 	Paging Paging `json:"paging"`
 }
 
-// Next return next result page.
-// If its last page - returns error.
-func (obj *AnimeSearchResult) Next(mal *MAL) (*AnimeSearchResult, error) {
-	nextPageURL := obj.Paging.Next
-	if nextPageURL == "" {
-		return nil, errors.New("latest page")
-	}
-	nextPageData := new(AnimeSearchResult)
-	if err := mal.request(nextPageData, http.MethodGet, nextPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return nextPageData, nil
-}
-
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *AnimeSearchResult) Prev(mal *MAL) (*AnimeSearchResult, error) {
-	prevPageURL := obj.Paging.Previous
-	if prevPageURL == "" {
-		return nil, errors.New("first page")
-	}
-	prevPageData := new(AnimeSearchResult)
-	if err := mal.request(prevPageData, http.MethodGet, prevPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return prevPageData, nil
+func (obj *AnimeSearchResult) Prev(client *MAL, limit ...int) (result *AnimeSearchResult, err error) {
+	result = new(AnimeSearchResult)
+	err = client.getPage(result, obj.Paging, -1, limit)
+	return
+}
+
+// Next return next result page.
+// If its last page - returns error.
+func (obj *AnimeSearchResult) Next(client *MAL, limit ...int) (result *AnimeSearchResult, err error) {
+	result = new(AnimeSearchResult)
+	err = client.getPage(result, obj.Paging, 1, limit)
+	return
 }
 
 // AnimeDetails returns details about anime with provided ID.
@@ -205,30 +193,18 @@ type AnimeRanking struct {
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *AnimeRanking) Next(mal *MAL) (*AnimeRanking, error) {
-	nextPageURL := obj.Paging.Next
-	if nextPageURL == "" {
-		return nil, errors.New("latest page")
-	}
-	nextPageData := new(AnimeRanking)
-	if err := mal.request(nextPageData, http.MethodGet, nextPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return nextPageData, nil
+func (obj *AnimeRanking) Next(client *MAL, limit ...int) (result *AnimeRanking, err error) {
+	result = new(AnimeRanking)
+	err = client.getPage(result, obj.Paging, 1, limit)
+	return
 }
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *AnimeRanking) Prev(mal *MAL) (*AnimeRanking, error) {
-	prevPageURL := obj.Paging.Previous
-	if prevPageURL == "" {
-		return nil, errors.New("first page")
-	}
-	prevPageData := new(AnimeRanking)
-	if err := mal.request(prevPageData, http.MethodGet, prevPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return prevPageData, nil
+func (obj *AnimeRanking) Prev(client *MAL, limit ...int) (result *AnimeRanking, err error) {
+	result = new(AnimeRanking)
+	err = client.getPage(result, obj.Paging, -1, limit)
+	return
 }
 
 // SeasonalAnime returns list of anime from certain year's season.
@@ -280,30 +256,18 @@ type SeasonalAnime struct {
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *SeasonalAnime) Next(mal *MAL) (*SeasonalAnime, error) {
-	nextPageURL := obj.Paging.Next
-	if nextPageURL == "" {
-		return nil, errors.New("latest page")
-	}
-	nextPageData := new(SeasonalAnime)
-	if err := mal.request(nextPageData, http.MethodGet, nextPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return nextPageData, nil
+func (obj *SeasonalAnime) Next(client *MAL, limit ...int) (result *SeasonalAnime, err error) {
+	result = new(SeasonalAnime)
+	err = client.getPage(result, obj.Paging, 1, limit)
+	return
 }
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *SeasonalAnime) Prev(mal *MAL) (*SeasonalAnime, error) {
-	prevPageURL := obj.Paging.Previous
-	if prevPageURL == "" {
-		return nil, errors.New("first page")
-	}
-	prevPageData := new(SeasonalAnime)
-	if err := mal.request(prevPageData, http.MethodGet, prevPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return prevPageData, nil
+func (obj *SeasonalAnime) Prev(client *MAL, limit ...int) (result *SeasonalAnime, err error) {
+	result = new(SeasonalAnime)
+	err = client.getPage(result, obj.Paging, -1, limit)
+	return
 }
 
 // SuggestedAnime returns suggested anime for the authorized user.
@@ -331,32 +295,20 @@ type SuggestedAnime struct {
 	Paging Paging `json:"paging"`
 }
 
-// Next return next result page.
-// If its last page - returns error.
-func (obj *SuggestedAnime) Next(mal *MAL) (*SuggestedAnime, error) {
-	nextPageURL := obj.Paging.Next
-	if nextPageURL == "" {
-		return nil, errors.New("latest page")
-	}
-	nextPageData := new(SuggestedAnime)
-	if err := mal.request(nextPageData, http.MethodGet, nextPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return nextPageData, nil
-}
-
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *SuggestedAnime) Prev(mal *MAL) (*SuggestedAnime, error) {
-	prevPageURL := obj.Paging.Previous
-	if prevPageURL == "" {
-		return nil, errors.New("first page")
-	}
-	prevPageData := new(SuggestedAnime)
-	if err := mal.request(prevPageData, http.MethodGet, prevPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return prevPageData, nil
+func (obj *SuggestedAnime) Prev(client *MAL, limit ...int) (result *SuggestedAnime, err error) {
+	result = new(SuggestedAnime)
+	err = client.getPage(result, obj.Paging, -1, limit)
+	return
+}
+
+// Next return next result page.
+// If its last page - returns error.
+func (obj *SuggestedAnime) Next(client *MAL, limit ...int) (result *SuggestedAnime, err error) {
+	result = new(SuggestedAnime)
+	err = client.getPage(result, obj.Paging, 1, limit)
+	return
 }
 
 // Node type is basic container for anime or manga

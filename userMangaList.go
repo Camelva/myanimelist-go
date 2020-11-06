@@ -187,32 +187,20 @@ type UserMangaList struct {
 	Paging Paging `json:"paging"`
 }
 
-// Next return next result page.
-// If its last page - returns error.
-func (obj *UserMangaList) Next(mal *MAL) (*UserMangaList, error) {
-	nextPageURL := obj.Paging.Next
-	if nextPageURL == "" {
-		return nil, errors.New("latest page")
-	}
-	nextPageData := new(UserMangaList)
-	if err := mal.request(nextPageData, http.MethodGet, nextPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return nextPageData, nil
-}
-
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *UserMangaList) Prev(mal *MAL) (*UserMangaList, error) {
-	prevPageURL := obj.Paging.Previous
-	if prevPageURL == "" {
-		return nil, errors.New("first page")
-	}
-	prevPageData := new(UserMangaList)
-	if err := mal.request(prevPageData, http.MethodGet, prevPageURL, url.Values{}); err != nil {
-		return nil, err
-	}
-	return prevPageData, nil
+func (obj *UserMangaList) Prev(client *MAL, limit ...int) (result *UserMangaList, err error) {
+	result = new(UserMangaList)
+	err = client.getPage(result, obj.Paging, -1, limit)
+	return
+}
+
+// Next return next result page.
+// If its last page - returns error.
+func (obj *UserMangaList) Next(client *MAL, limit ...int) (result *UserMangaList, err error) {
+	result = new(UserMangaList)
+	err = client.getPage(result, obj.Paging, 1, limit)
+	return
 }
 
 type MangaListStatus struct {

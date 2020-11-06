@@ -217,3 +217,34 @@ func (s *PagingSettings) Set(values *url.Values) {
 		values.Set("offset", strconv.Itoa(s.Offset))
 	}
 }
+
+func (mal *MAL) getPage(result interface{}, p Paging, direction int8, limit []int) error {
+	var pageURL string
+
+	if direction < 0 {
+		pageURL = p.Previous
+	} else {
+		pageURL = p.Next
+	}
+
+	if pageURL == "" {
+		return errors.New("there is no more pages")
+	}
+
+	if len(limit) > 0 {
+		if limit[0] > 0 {
+			pageObj, err := url.Parse(pageURL)
+			if err != nil {
+				return fmt.Errorf("something wrong with url: %s", err)
+			}
+
+			newQuery := pageObj.Query()
+			newQuery.Set("limit", string(limit[0]))
+			pageObj.RawQuery = newQuery.Encode()
+
+			pageURL = pageObj.String()
+		}
+	}
+
+	return mal.request(result, http.MethodGet, pageURL, url.Values{})
+}
