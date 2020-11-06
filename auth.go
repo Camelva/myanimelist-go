@@ -141,50 +141,6 @@ func (mal *MAL) RefreshToken() (*UserCredentials, error) {
 	return user, nil
 }
 
-//func (mal *MAL) customRequest(destination interface{}, method string, path string, data url.Values) error {
-//	body := strings.NewReader(data.Encode())
-//	req, err := http.NewRequest(method, path, body)
-//	if err != nil {
-//		return err
-//	}
-//	if method == http.MethodPost {
-//		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-//		req.Header.Add("Content-Length", strconv.Itoa(int(body.Size())))
-//	}
-//
-//	reqDump, _ := httputil.DumpRequestOut(req, true)
-//	mal.logger.Printf("====== REQUEST: =======\n%s\n", string(reqDump))
-//
-//	resp, err := mal.client.Do(req)
-//
-//	respDump, _ := httputil.DumpResponse(resp, true)
-//	mal.logger.Printf("====== RESPOSNE: =======\n%s\n", string(respDump))
-//
-//	if err != nil {
-//		return err
-//	}
-//	defer resp.Body.Close()
-//
-//	respBody, err := ioutil.ReadAll(resp.Body)
-//	if err != nil {
-//		return err
-//	}
-//
-//	if resp.StatusCode == http.StatusOK {
-//		if err := json.Unmarshal(respBody, destination); err != nil {
-//			return err
-//		}
-//		return nil
-//	}
-//
-//	// Try to parse error message
-//	errorMsg := new(ErrorResponse)
-//	if err := json.Unmarshal(respBody, errorMsg); err != nil {
-//		return err
-//	}
-//	return errorMsg
-//}
-
 type UserCredentials struct {
 	AccessToken  string
 	RefreshToken string
