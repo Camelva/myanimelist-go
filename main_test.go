@@ -22,14 +22,28 @@ type TestCredentials struct {
 }
 
 func init() {
+	data := readEnv()
 	secretData := secretFileRead()
-	if secretData.AccessToken == "" {
+	if secretData.ClientID != "" {
+		data.ClientID = secretData.ClientID
+	}
+	if secretData.ClientSecret != "" {
+		data.ClientSecret = secretData.ClientSecret
+	}
+	if secretData.AccessToken != "" {
+		data.AccessToken = secretData.AccessToken
+	}
+	if secretData.RefreshToken != "" {
+		data.RefreshToken = secretData.RefreshToken
+	}
+
+	if data.AccessToken == "" {
 		log.Fatalln("access token is required to run any test")
 	}
 
 	testClient, err := New(Config{
-		ClientID:     secretData.ClientID,
-		ClientSecret: secretData.ClientSecret,
+		ClientID:     data.ClientID,
+		ClientSecret: data.ClientSecret,
 		RedirectURL:  "/",
 		HTTPClient:   &http.Client{Timeout: 5 * time.Second},
 		Logger:       log.New(os.Stderr, "[TEST MAL]", 0),
@@ -38,22 +52,26 @@ func init() {
 		log.Fatalf("can't init testClient: %s", err)
 	}
 
-	testClient.auth.userToken = secretData.AccessToken
-	testClient.auth.refreshToken = secretData.RefreshToken
+	testClient.auth.userToken = data.AccessToken
+	testClient.auth.refreshToken = data.RefreshToken
 
 	ExampleMAL = testClient
 }
 
 func secretFileRead() *TestCredentials {
+	secretData := new(TestCredentials)
+
 	secretFilePath := filepath.Join("testdata", secretFileName)
 	secretFileContent, err := ioutil.ReadFile(secretFilePath)
+
 	if err != nil {
-		log.Fatalln("make sure to create secret.yaml file inside testdata folder before running tests")
+		//log.Fatalln("make sure to create secret.yaml file inside testdata folder before running tests")
+		return secretData
 	}
 
-	secretData := new(TestCredentials)
 	if err := yaml.Unmarshal(secretFileContent, secretData); err != nil {
-		log.Fatalf("can't parse config file: %v\n", err)
+		log.Printf("can't parse config file: %v\n", err)
+		return secretData
 	}
 	return secretData
 }
@@ -86,4 +104,21 @@ func secretFileWrite(config *TestCredentials) {
 	if err := ioutil.WriteFile(secretFilePath, newSecretData, 0644); err != nil {
 		log.Fatalf("can't rewrite secret file: %s", err)
 	}
+}
+
+func readEnv() *TestCredentials {
+	var storage = new(TestCredentials)
+	if id, ok := os.LookupEnv("CLIENT_ID"); ok {
+		storage.ClientID = id
+	}
+	if secret, ok := os.LookupEnv("CLIENT_SECRET"); ok {
+		storage.ClientSecret = secret
+	}
+	if accToken, ok := os.LookupEnv("ACCESS_TOKEN"); ok {
+		storage.AccessToken = accToken
+	}
+	if refToken, ok := os.LookupEnv("REFRESH_TOKEN"); ok {
+		storage.RefreshToken = refToken
+	}
+	return storage
 }
