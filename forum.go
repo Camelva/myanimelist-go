@@ -47,7 +47,7 @@ func (mal *MAL) ForumTopic(topicID int, settings PagingSettings) (*ForumTopic, e
 	path := fmt.Sprintf("./forum/topic/%d", topicID)
 	data := url.Values{}
 
-	settings.Set(&data)
+	settings.set(&data)
 
 	topicInfo := new(ForumTopic)
 
@@ -146,7 +146,7 @@ func (mal *MAL) ForumSearchTopics(searchOpts ForumSearchSettings, settings Pagin
 
 	data.Set("sort", sort)
 
-	settings.Set(&data)
+	settings.set(&data)
 
 	result := new(ForumSearchResult)
 	if err := mal.request(result, method, path, data); err != nil {

@@ -202,14 +202,14 @@ type Paging struct {
 }
 
 // PagingSettings contains limit and offset fields, which are applicable for almost every request.
-// Also, im general, maximal && default limit value is 100.
+// Also, im general, max && default Limit value is 100.
 // But for actual information refer to certain method's official documentation.
 type PagingSettings struct {
 	Limit  int
 	Offset int
 }
 
-func (s *PagingSettings) Set(values *url.Values) {
+func (s *PagingSettings) set(values *url.Values) {
 	if s.Limit != 0 {
 		values.Set("limit", strconv.Itoa(s.Limit))
 	}

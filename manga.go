@@ -15,7 +15,7 @@ func (mal *MAL) MangaSearch(search string, settings PagingSettings) (*MangaSearc
 	data := url.Values{
 		"q": {search},
 	}
-	settings.Set(&data)
+	settings.set(&data)
 
 	searchResult := new(MangaSearchResult)
 	if err := mal.request(searchResult, method, path, data); err != nil {
@@ -53,7 +53,7 @@ func (obj *MangaSearchResult) Next(client *MAL, limit ...int) (result *MangaSear
 // You can control which fields to retrieve. For all fields use FieldAllAvailable.
 // With no fields provided api still returns ID, Title and MainPicture fields
 func (mal *MAL) MangaDetails(mangaID int, fields ...string) (*MangaDetails, error) {
-	acceptableArr := append(GeneralFields, MangaFields...)
+	acceptableArr := append(generalFields, mangaFields...)
 	method := http.MethodGet
 	path := fmt.Sprintf("./manga/%d", mangaID)
 	acceptable := makeList(acceptableArr)
@@ -156,7 +156,7 @@ type MangaDetails struct {
 // - RankManhwa, - RankManhua, - RankByPopularity, - RankFavorite.
 func (mal *MAL) MangaRanking(rankingType string, settings PagingSettings) (*MangaRanking, error) {
 	// Current working rankings
-	acceptable := makeList(append(GeneralRankings, MangaRankings...))
+	acceptable := makeList(append(generalRankings, mangaRankings...))
 	if _, ok := acceptable[rankingType]; !ok {
 		return nil, errors.New("undefined ranking type")
 	}
@@ -166,7 +166,7 @@ func (mal *MAL) MangaRanking(rankingType string, settings PagingSettings) (*Mang
 	data := url.Values{
 		"ranking_type": {rankingType},
 	}
-	settings.Set(&data)
+	settings.set(&data)
 
 	mangaRank := new(MangaRanking)
 	if err := mal.request(mangaRank, method, path, data); err != nil {

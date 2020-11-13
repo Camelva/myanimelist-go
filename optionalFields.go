@@ -1,9 +1,10 @@
 package myanimelist
 
-// Custom field. Transforms into all available fields before sending request
+// Custom field, applicable to both AnimeDetails and MangaDetails.
+// Transforms into all available fields before sending request.
 const FieldAllAvailable string = "*"
 
-// Shared fields
+// Shared fields for both AnimeDetails and MangaDetails.
 const (
 	FieldID                string = "id"
 	FieldTitle             string = "title"
@@ -33,13 +34,13 @@ const (
 	FieldStatistics        string = "statistics"
 )
 
-var GeneralFields = []string{FieldID, FieldTitle, FieldMainPicture, FieldAlternativeTitles,
+var generalFields = []string{FieldID, FieldTitle, FieldMainPicture, FieldAlternativeTitles,
 	FieldStartDate, FieldEndDate, FieldSynopsis, FieldMean, FieldRank, FieldPopularity,
 	FieldNumListUsers, FieldNumScoringUsers, FieldNSFW, FieldCreatedAt, FieldUpdatedAt,
 	FieldMediaType, FieldStatus, FieldGenres, FieldMyListStatus, FieldPictures,
 	FieldBackground, FieldRelatedAnime, FieldRelatedManga, FieldRecommendations, FieldStatistics}
 
-// Anime-only fields
+// AnimeDetails() only fields
 const (
 	FieldNumEpisodes            string = "num_episodes"
 	FieldStartSeason            string = "start_season"
@@ -49,10 +50,10 @@ const (
 	FieldRating                 string = "rating"
 )
 
-var AnimeFields = []string{FieldNumEpisodes, FieldStartSeason, FieldBroadcast, FieldSource,
+var animeFields = []string{FieldNumEpisodes, FieldStartSeason, FieldBroadcast, FieldSource,
 	FieldAverageEpisodeDuration, FieldRating, FieldStudios}
 
-// Manga-only fields
+// MangaDetails() only fields.
 const (
 	FieldNumVolumes    string = "num_volumes"
 	FieldNumChapters   string = "num_chapters"
@@ -60,9 +61,9 @@ const (
 	FieldSerialization string = "serialization{name}"
 )
 
-var MangaFields = []string{FieldNumVolumes, FieldNumChapters, FieldAuthors, FieldSerialization}
+var mangaFields = []string{FieldNumVolumes, FieldNumChapters, FieldAuthors, FieldSerialization}
 
-// Shared ranks
+// Shared ranks for both AnimeRanking and MangaRanking.
 const (
 	// Top Anime|Manga Series
 	RankAll string = "all"
@@ -72,9 +73,9 @@ const (
 	RankFavorite string = "favorite"
 )
 
-var GeneralRankings = []string{RankAll, RankByPopularity, RankFavorite}
+var generalRankings = []string{RankAll, RankByPopularity, RankFavorite}
 
-// Anime related ranks
+// AnimeRanking only
 const (
 	// Top Airing Anime
 	RankAiring string = "airing"
@@ -90,9 +91,9 @@ const (
 	RankSpecials string = "special"
 )
 
-var AnimeRankings = []string{RankAiring, RankUpcoming, RankTV, RankOVA, RankMovie, RankSpecials}
+var animeRankings = []string{RankAiring, RankUpcoming, RankTV, RankOVA, RankMovie, RankSpecials}
 
-// Manga related ranks
+// MangaRanking only
 const (
 	// Top Manga
 	RankManga string = "manga"
@@ -108,16 +109,17 @@ const (
 	RankManhua string = "manhua"
 )
 
-var MangaRankings = []string{RankManga, RankNovels, RankOneShots, RankDoujinshi, RankManhwa, RankManhua}
+var mangaRankings = []string{RankManga, RankNovels, RankOneShots, RankDoujinshi, RankManhwa, RankManhua}
 
-// Shared statuses
+// Shared statuses, working for 'UserAnimeList()'/'UserMangaList()'
+// and for 'AnimeConfig'/'MangaConfig' too.
 const (
 	StatusOnHold    string = "on_hold"
 	StatusDropped   string = "dropped"
 	StatusCompleted string = "completed"
 )
 
-var GeneralStatuses = []string{StatusOnHold, StatusDropped, StatusCompleted}
+var generalStatuses = []string{StatusOnHold, StatusDropped, StatusCompleted}
 
 // Anime-only statuses
 const (
@@ -125,7 +127,7 @@ const (
 	StatusPlanToWatch string = "plan_to_watch"
 )
 
-var AnimeStatuses = []string{StatusWatching, StatusPlanToWatch}
+var animeStatuses = []string{StatusWatching, StatusPlanToWatch}
 
 // Manga-only statuses
 const (
@@ -133,8 +135,9 @@ const (
 	StatusPlanToRead string = "plan_to_read"
 )
 
-var MangaStatuses = []string{StatusReading, StatusPlanToRead}
+var mangaStatuses = []string{StatusReading, StatusPlanToRead}
 
+// Predefined season values. Used for 'SeasonalAnime()'
 const (
 	// January, February, March
 	SeasonWinter string = "winter"
@@ -146,21 +149,24 @@ const (
 	SeasonFall string = "fall"
 )
 
-var Seasons = []string{SeasonWinter, SeasonSpring, SeasonSummer, SeasonFall}
+var seasons = []string{SeasonWinter, SeasonSpring, SeasonSummer, SeasonFall}
 
+// Used to sort SeasonalAnime() response
 const (
 	SortByScore      string = "anime_score"
 	SortByUsersLists string = "anime_num_list_users"
 )
 
+// Anime or manga priority. Used when updating their status on list
 const (
 	PriorityLow = iota
 	PriorityMedium
 	PriorityHigh
 )
 
-var Priorities = []int{PriorityLow, PriorityMedium, PriorityHigh}
+var priorities = []int{PriorityLow, PriorityMedium, PriorityHigh}
 
+// User list's sort
 const (
 	SortListByScore      string = "list_score"
 	SortListByUpdateDate string = "list_updated_at"
@@ -169,5 +175,5 @@ const (
 	SortListByID         string = "id"
 )
 
-var ListSortings = []string{SortListByScore, SortListByUpdateDate, SortListByTitle,
+var listSortings = []string{SortListByScore, SortListByUpdateDate, SortListByTitle,
 	SortListByStartDate, SortListByID}

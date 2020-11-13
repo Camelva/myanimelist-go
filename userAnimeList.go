@@ -71,7 +71,7 @@ func (c AnimeConfig) SetID(id int) AnimeConfig {
 // SetStatus accept only StatusWatching, StatusCompleted, StatusOnHold,
 // StatusDropped or StatusPlanToWatch constants
 func (c AnimeConfig) SetStatus(status string) AnimeConfig {
-	acceptableStatuses := makeList(append(GeneralStatuses, AnimeStatuses...))
+	acceptableStatuses := makeList(append(generalStatuses, animeStatuses...))
 	if _, ok := acceptableStatuses[status]; !ok {
 		// non-acceptable status, do nothing
 		return c
@@ -100,12 +100,12 @@ func (c AnimeConfig) SetWatchedEpisodes(count int) AnimeConfig {
 
 // SetPriority accept only PriorityLow, PriorityMedium or PriorityHigh constants
 func (c AnimeConfig) SetPriority(priority int) AnimeConfig {
-	acceptable := makeListInt(Priorities)
+	acceptable := makeListInt(priorities)
 	if _, ok := acceptable[priority]; !ok {
 		// non-acceptable, do nothing
 		return c
 	}
-	c["priority"] = strconv.Itoa(int(priority))
+	c["priority"] = strconv.Itoa(priority)
 	return c
 }
 
@@ -160,19 +160,19 @@ func (mal *MAL) UserAnimeList(username string, status string, sort string, setti
 	path := fmt.Sprintf("./users/%s/animelist", username)
 	data := url.Values{}
 	if status != "" {
-		acceptable := makeList(append(GeneralStatuses, AnimeStatuses...))
+		acceptable := makeList(append(generalStatuses, animeStatuses...))
 		if _, ok := acceptable[sort]; ok {
-			data.Add("status", string(status))
+			data.Add("status", status)
 		}
 	}
 	if sort != "" {
-		acceptable := makeList(ListSortings)
+		acceptable := makeList(listSortings)
 		if _, ok := acceptable[sort]; ok {
 			data.Add("sort", fixSorting(sort, "anime"))
 		}
 	}
 
-	settings.Set(&data)
+	settings.set(&data)
 
 	var userList = new(UserAnimeList)
 	if err := mal.request(userList, method, path, data); err != nil {

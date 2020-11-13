@@ -46,7 +46,7 @@ func (c MangaConfig) SetID(id int) MangaConfig {
 // SetStatus accept only StatusReading, StatusCompleted, StatusOnHold,
 // StatusDropped or StatusPlanToRead constants
 func (c MangaConfig) SetStatus(status string) MangaConfig {
-	acceptable := makeList(append(GeneralStatuses, MangaStatuses...))
+	acceptable := makeList(append(generalStatuses, mangaStatuses...))
 	if _, ok := acceptable[status]; !ok {
 		// non-acceptable status, do nothing
 		return c
@@ -76,7 +76,7 @@ func (c MangaConfig) SetChaptersRead(num int) MangaConfig {
 
 // SetPriority accept only PriorityLow, PriorityMedium or PriorityHigh constants
 func (c MangaConfig) SetPriority(priority int) MangaConfig {
-	acceptable := makeListInt(Priorities)
+	acceptable := makeListInt(priorities)
 	if _, ok := acceptable[priority]; !ok {
 		// non-acceptable, do nothing
 		return c
@@ -158,18 +158,18 @@ func (mal *MAL) UserMangaList(username string, status string, sort string, setti
 	path := fmt.Sprintf("./users/%s/mangalist", username)
 	data := url.Values{}
 	if status != "" {
-		acceptable := makeList(append(GeneralStatuses, MangaStatuses...))
+		acceptable := makeList(append(generalStatuses, mangaStatuses...))
 		if _, ok := acceptable[status]; ok {
 			data.Add("status", status)
 		}
 	}
 	if sort != "" {
-		acceptable := makeList(ListSortings)
+		acceptable := makeList(listSortings)
 		if _, ok := acceptable[sort]; ok {
 			data.Add("sort", fixSorting(sort, "manga"))
 		}
 	}
-	settings.Set(&data)
+	settings.set(&data)
 
 	var userList = new(UserMangaList)
 	if err := mal.request(userList, method, path, data); err != nil {

@@ -15,7 +15,7 @@ func (mal *MAL) AnimeSearch(search string, settings PagingSettings) (*AnimeSearc
 	data := url.Values{
 		"q": {search},
 	}
-	settings.Set(&data)
+	settings.set(&data)
 
 	searchResult := new(AnimeSearchResult)
 	if err := mal.request(searchResult, method, path, data); err != nil {
@@ -53,7 +53,7 @@ func (obj *AnimeSearchResult) Next(client *MAL, limit ...int) (result *AnimeSear
 // You can control which fields to retrieve. For all fields use FieldAllAvailable.
 // With no fields provided api still returns ID, Title and MainPicture fields
 func (mal *MAL) AnimeDetails(animeID int, fields ...string) (*AnimeDetails, error) {
-	var acceptableArr = append(GeneralFields, AnimeFields...)
+	var acceptableArr = append(generalFields, animeFields...)
 	method := http.MethodGet
 	path := fmt.Sprintf("./anime/%d", animeID)
 	acceptable := makeList(acceptableArr)
@@ -159,7 +159,7 @@ type AnimeDetails struct {
 // - RankMovie, - RankSpecial, - RankByPopularity, - RankFavorite.
 func (mal *MAL) AnimeRanking(rankingType string, settings PagingSettings) (*AnimeRanking, error) {
 	// Currently working rankings
-	acceptable := makeList(append(GeneralRankings, AnimeRankings...))
+	acceptable := makeList(append(generalRankings, animeRankings...))
 	if _, ok := acceptable[rankingType]; !ok {
 		return nil, errors.New("undefined ranking type")
 	}
@@ -169,7 +169,7 @@ func (mal *MAL) AnimeRanking(rankingType string, settings PagingSettings) (*Anim
 	data := url.Values{
 		"ranking_type": {rankingType},
 	}
-	settings.Set(&data)
+	settings.set(&data)
 
 	animeRank := new(AnimeRanking)
 	if err := mal.request(animeRank, method, path, data); err != nil {
@@ -212,7 +212,7 @@ func (obj *AnimeRanking) Prev(client *MAL, limit ...int) (result *AnimeRanking, 
 // For additional info see https://myanimelist.net/apiconfig/references/api/v2#operation/anime_ranking_get
 func (mal *MAL) SeasonalAnime(year int, season string, sort string, settings PagingSettings) (*SeasonalAnime, error) {
 	// Available season values
-	acceptable := makeList(Seasons)
+	acceptable := makeList(seasons)
 	if _, ok := acceptable[season]; !ok {
 		return nil, errors.New("undefined season")
 	}
@@ -231,7 +231,7 @@ func (mal *MAL) SeasonalAnime(year int, season string, sort string, settings Pag
 			data.Set("sort", sort)
 		}
 	}
-	settings.Set(&data)
+	settings.set(&data)
 
 	seasonal := new(SeasonalAnime)
 	if err := mal.request(seasonal, method, path, data); err != nil {
@@ -276,7 +276,7 @@ func (mal *MAL) SuggestedAnime(settings PagingSettings) (*SuggestedAnime, error)
 	method := http.MethodGet
 	path := "./anime/suggestions"
 	data := url.Values{}
-	settings.Set(&data)
+	settings.set(&data)
 
 	suggestions := new(SuggestedAnime)
 	if err := mal.request(suggestions, method, path, data); err != nil {
