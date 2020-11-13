@@ -1,3 +1,4 @@
+// myanimelist is a small library to simplify usege of MyAnimeList's API
 package myanimelist
 
 import (
@@ -239,7 +240,7 @@ func (mal *MAL) getPage(result interface{}, p Paging, direction int8, limit []in
 			}
 
 			newQuery := pageObj.Query()
-			newQuery.Set("limit", string(limit[0]))
+			newQuery.Set("limit", fmt.Sprint(limit[0]))
 			pageObj.RawQuery = newQuery.Encode()
 
 			pageURL = pageObj.String()
