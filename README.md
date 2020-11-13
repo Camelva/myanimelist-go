@@ -1,4 +1,9 @@
 # MyAnimeList-Go  
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/camelva/myanimelist-go)](https://pkg.go.dev/github.com/camelva/myanimelist-go)
+[![Build Status](https://travis-ci.com/Camelva/myanimelist-go.svg?branch=main)](https://travis-ci.com/Camelva/myanimelist-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/camelva/myanimelist-go)](https://goreportcard.com/report/github.com/camelva/myanimelist-go)
+
+
 **MyAnimeList-Go** is a small library to simplify your usage of [MyAnimeList][MAL]' [API]  
   
 > According to official API documentation, current version of API labeled as **Beta**. Considering this, **MyAnimeList-Go** can't be called _Stable_ too. But still, at this moment library fully covers all available methods of current API version (v2.0.0).  
@@ -15,8 +20,8 @@
 		- [Token Expiration](#token-expiration)
 		- [Get tokens](#get-tokens)
 		- [Set tokens manually](#set-tokens-manually)
-	- [Seach anime (manga)](#search-anime-manga)
-	- [Details about certain anime (manga)](#detail-about-certain-anime-manga)
+	- [Search anime (manga)](#search-anime-manga)
+	- [Details about certain anime (manga)](#details-about-certain-anime-manga)
 	- [Ranked anime (manga)](#ranked-anime-manga)
 	- [Seasonal anime](#seasonal-anime)
 	- [Anime suggestions](#anime-suggestions)
