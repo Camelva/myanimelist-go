@@ -1,8 +1,14 @@
 package myanimelist
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestMAL_RefreshToken(t *testing.T) {
+	if _, ok := os.LookupEnv("TRAVIS"); ok {
+		t.Skip("we want to run this test only locally")
+	}
 	mal := ExampleMAL
 
 	if mal.auth.clientID == "" {
