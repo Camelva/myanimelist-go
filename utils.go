@@ -1,16 +1,9 @@
 package myanimelist
 
-// fieldsList is small util function to avoid importing additional libraries
-//func fieldsList(fields ...string) map[string]struct{} {
-//	var fieldsMap = make(map[string]struct{}, len(fields))
-//	if len(fields) < 1 {
-//		return fieldsMap
-//	}
-//	for _, v := range fields {
-//		fieldsMap[v] = struct{}{}
-//	}
-//	return fieldsMap
-//}
+import (
+	"crypto/rand"
+	"log"
+)
 
 func makeList(objects []string) map[string]struct{} {
 	var list = make(map[string]struct{}, len(objects))
@@ -45,10 +38,43 @@ func fixSorting(sort string, kind string) string {
 		prefix = "manga_"
 	} else {
 		// undefined kind
-		return string(sort)
+		return sort
 	}
 	if sort == SortListByTitle || sort == SortListByStartDate || sort == SortListByID {
-		return prefix + string(sort)
+		return prefix + sort
 	}
-	return string(sort)
+	return sort
+}
+
+func randomString(length int, chars []byte) string {
+	if length == 0 {
+		return ""
+	}
+	charsAmount := len(chars)
+	if charsAmount < 2 || charsAmount > 256 {
+		log.Println("randomString() wrong length")
+		return ""
+	}
+	maxNumber := 255 - (256 % charsAmount)
+	resultStorage := make([]byte, length)
+	bytesStorage := make([]byte, length+(length/4))
+	i := 0
+	for {
+		if _, err := rand.Read(bytesStorage); err != nil {
+			log.Println("randomString() error reading random bytes: ", err)
+			return ""
+		}
+		for _, rb := range bytesStorage {
+			randomInt := int(rb)
+			if randomInt > maxNumber {
+				// Skip this number to avoid modulo bias.
+				continue
+			}
+			resultStorage[i] = chars[randomInt%charsAmount]
+			i++
+			if i == length {
+				return string(resultStorage)
+			}
+		}
+	}
 }

@@ -1,10 +1,7 @@
 package myanimelist
 
 import (
-	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
-	"github.com/dchest/uniuri"
 	"net/http"
 	"net/url"
 	"time"
@@ -25,7 +22,7 @@ var tokenEndpoint = "https://myanimelist.net/v1/oauth2/token"
 func (mal *MAL) AuthURL() string {
 	// Generate PKCE codes - https://tools.ietf.org/html/rfc7636
 	mal.auth.codeVerifier = codeVerifier()
-	mal.auth.codeChallenge = codeChallenge(mal.auth.codeVerifier, CodeChallengePlain)
+	mal.auth.codeChallenge = codeChallenge(mal.auth.codeVerifier, codeChallengePlain)
 
 	reqURL, _ := url.Parse(authorizeEndpoint)
 
@@ -80,8 +77,9 @@ func (mal *MAL) ExchangeToken(authCode string) (*UserCredentials, error) {
 type codeChallengeMethod string
 
 const (
-	CodeChallengePlain  codeChallengeMethod = "plain"
-	CodeChallengeSHA256 codeChallengeMethod = "S256"
+	codeChallengePlain  codeChallengeMethod = "plain"
+	// redundant for now, because MyAnimeList support only plain method yet
+	//codeChallengeSHA256 codeChallengeMethod = "S256"
 )
 
 // codeVerifier generates random string, as RFC7636 require.
@@ -90,22 +88,22 @@ func codeVerifier() string {
 	var allowedSymbols = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
 
 	// Minimum - 43, maximum is 128 symbols
-	return uniuri.NewLenChars(128, allowedSymbols)
+	return randomString(128, allowedSymbols)
 }
 
 // codeChallenge encode our generated string. For additional info look at
 // Section 4.2 of RFC7636 - https://tools.ietf.org/html/rfc7636#section-4.2.
-func codeChallenge(code string, mode codeChallengeMethod) string {
-	if mode != CodeChallengeSHA256 {
-		return code
-	}
-
+func codeChallenge(code string, _ codeChallengeMethod) string {
+	// redundant because MyAnimeList support only plain method yet
+	//if mode == codeChallengePlain {
+	return code
+	//}
 	// BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
-	s := sha256.New()
-	s.Write([]byte(code))
-	encoded := s.Sum(nil)
-
-	return base64.URLEncoding.EncodeToString(encoded)
+	//s := sha256.New()
+	//s.Write([]byte(code))
+	//encoded := s.Sum(nil)
+	//
+	//return base64.URLEncoding.EncodeToString(encoded)
 }
 
 func (mal *MAL) RefreshToken() (*UserCredentials, error) {
