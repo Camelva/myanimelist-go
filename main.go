@@ -135,7 +135,6 @@ func (mal *MAL) requestRaw(method string, path string, data url.Values) (*http.R
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("path: %s", apiURL.String())
 
 	if len(data) > 0 {
 		switch method {
