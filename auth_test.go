@@ -9,7 +9,6 @@ func TestMAL_RefreshToken(t *testing.T) {
 	if _, ok := os.LookupEnv("TRAVIS"); ok {
 		t.Skip("we want to run this test only locally")
 	}
-	t.Skip("not now")
 	mal := ExampleMAL
 
 	if mal.Auth.clientID == "" {
@@ -31,7 +30,7 @@ func TestMAL_RefreshToken(t *testing.T) {
 		t.Fatal("Got empty fields")
 	}
 
-	// if everything went good, we need to update our credentials in file
+	// if everything went good, we need to update our credentials in file for future usage
 	secretFileWrite(&TestCredentials{
 		AccessToken:  userInfo.AccessToken,
 		RefreshToken: userInfo.RefreshToken,

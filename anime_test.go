@@ -39,16 +39,19 @@ func TestMAL_Anime_Search(t *testing.T) {
 	}
 }
 
-var exampleAnimeSearchResult = &AnimeSearchResult{
-	parent: &ExampleMAL.Anime,
-	Data:   nil,
-	Paging: Paging{
-		Previous: "https://api.myanimelist.net/v2/anime?offset=0&limit=3&q=piece",
-		Next:     "https://api.myanimelist.net/v2/anime?offset=6&limit=3&q=piece",
-	},
+func generateAnimeSearchResult(mal *MAL) *AnimeSearchResult {
+	return &AnimeSearchResult{
+		parent: &mal.Anime,
+		Data:   nil,
+		Paging: Paging{
+			Previous: "https://api.myanimelist.net/v2/anime?offset=0&limit=3&q=piece",
+			Next:     "https://api.myanimelist.net/v2/anime?offset=6&limit=3&q=piece",
+		},
+	}
 }
 
 func TestAnimeSearchResult_Next(t *testing.T) {
+	exampleAnimeSearchResult := generateAnimeSearchResult(ExampleMAL)
 	type args struct {
 		obj *AnimeSearchResult
 	}
@@ -82,6 +85,7 @@ func TestAnimeSearchResult_Next(t *testing.T) {
 	}
 }
 func TestAnimeSearchResult_Prev(t *testing.T) {
+	exampleAnimeSearchResult := generateAnimeSearchResult(ExampleMAL)
 	type args struct {
 		obj *AnimeSearchResult
 	}
@@ -187,16 +191,19 @@ func TestMAL_Anime_Top(t *testing.T) {
 	}
 }
 
-var exampleAnimeTop = &AnimeTop{
-	parent: &ExampleMAL.Anime,
-	Data:   nil,
-	Paging: Paging{
-		Previous: "https://api.myanimelist.net/v2/anime/ranking?offset=0&limit=3",
-		Next:     "https://api.myanimelist.net/v2/anime/ranking?offset=6&limit=3",
-	},
+func generateAnimeTop(mal *MAL) *AnimeTop {
+	return &AnimeTop{
+		parent: &mal.Anime,
+		Data:   nil,
+		Paging: Paging{
+			Previous: "https://api.myanimelist.net/v2/anime/ranking?offset=0&limit=3",
+			Next:     "https://api.myanimelist.net/v2/anime/ranking?offset=6&limit=3",
+		},
+	}
 }
 
 func TestAnimeTop_Next(t *testing.T) {
+	exampleAnimeTop := generateAnimeTop(ExampleMAL)
 	type args struct {
 		obj *AnimeTop
 	}
@@ -230,6 +237,7 @@ func TestAnimeTop_Next(t *testing.T) {
 	}
 }
 func TestAnimeTop_Prev(t *testing.T) {
+	exampleAnimeTop := generateAnimeTop(ExampleMAL)
 	type args struct {
 		obj *AnimeTop
 	}
@@ -299,16 +307,19 @@ func TestMAL_Anime_Seasonal(t *testing.T) {
 	}
 }
 
-var exampleAnimeSeasonal = &AnimeSeasonal{
-	parent: &ExampleMAL.Anime,
-	Data:   nil,
-	Paging: Paging{
-		Previous: "https://api.myanimelist.net/v2/anime/season/2015/fall?offset=0&limit=3&sort=anime_score",
-		Next:     "https://api.myanimelist.net/v2/anime/season/2015/fall?offset=6&limit=3&sort=anime_score",
-	},
+func generateAnimeSeasonal(mal *MAL) *AnimeSeasonal {
+	return &AnimeSeasonal{
+		parent: &mal.Anime,
+		Data:   nil,
+		Paging: Paging{
+			Previous: "https://api.myanimelist.net/v2/anime/season/2015/fall?offset=0&limit=3&sort=anime_score",
+			Next:     "https://api.myanimelist.net/v2/anime/season/2015/fall?offset=6&limit=3&sort=anime_score",
+		},
+	}
 }
 
 func TestAnimeSeasonal_Next(t *testing.T) {
+	exampleAnimeSeasonal := generateAnimeSeasonal(ExampleMAL)
 	type args struct {
 		obj *AnimeSeasonal
 	}
@@ -342,6 +353,7 @@ func TestAnimeSeasonal_Next(t *testing.T) {
 	}
 }
 func TestAnimeSeasonal_Prev(t *testing.T) {
+	exampleAnimeSeasonal := generateAnimeSeasonal(ExampleMAL)
 	type args struct {
 		obj *AnimeSeasonal
 	}
@@ -408,16 +420,19 @@ func TestMAL_Anime_Suggestions(t *testing.T) {
 	}
 }
 
-var exampleAnimeSuggestions = &AnimeSuggestions{
-	parent: &ExampleMAL.Anime,
-	Data:   nil,
-	Paging: Paging{
-		Previous: "https://api.myanimelist.net/v2/anime/suggestions?offset=0&limit=3",
-		Next:     "https://api.myanimelist.net/v2/anime/suggestions?offset=6&limit=3",
-	},
+func generateAnimeSuggestions(mal *MAL) *AnimeSuggestions {
+	return &AnimeSuggestions{
+		parent: &mal.Anime,
+		Data:   nil,
+		Paging: Paging{
+			Previous: "https://api.myanimelist.net/v2/anime/suggestions?offset=0&limit=3",
+			Next:     "https://api.myanimelist.net/v2/anime/suggestions?offset=6&limit=3",
+		},
+	}
 }
 
 func TestAnimeSuggestions_Next(t *testing.T) {
+	exampleAnimeSuggestions := generateAnimeSuggestions(ExampleMAL)
 	type args struct {
 		obj *AnimeSuggestions
 	}
@@ -451,6 +466,7 @@ func TestAnimeSuggestions_Next(t *testing.T) {
 	}
 }
 func TestAnimeSuggestions_Prev(t *testing.T) {
+	exampleAnimeSuggestions := generateAnimeSuggestions(ExampleMAL)
 	type args struct {
 		obj *AnimeSuggestions
 	}

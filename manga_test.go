@@ -39,16 +39,19 @@ func TestMAL_Manga_Search(t *testing.T) {
 	}
 }
 
-var exampleMangaSearchResult = &MangaSearchResult{
-	parent: &ExampleMAL.Manga,
-	Data:   nil,
-	Paging: Paging{
-		Previous: "https://api.myanimelist.net/v2/manga?offset=0&limit=3&q=piece",
-		Next:     "https://api.myanimelist.net/v2/manga?offset=6&limit=3&q=piece",
-	},
+func generateExampleMangaSearchResult(mal *MAL) *MangaSearchResult {
+	return &MangaSearchResult{
+		parent: &mal.Manga,
+		Data:   nil,
+		Paging: Paging{
+			Previous: "https://api.myanimelist.net/v2/manga?offset=0&limit=3&q=piece",
+			Next:     "https://api.myanimelist.net/v2/manga?offset=6&limit=3&q=piece",
+		},
+	}
 }
 
 func TestMangaSearchResult_Next(t *testing.T) {
+	exampleMangaSearchResult := generateExampleMangaSearchResult(ExampleMAL)
 	type args struct {
 		obj *MangaSearchResult
 	}
@@ -82,6 +85,7 @@ func TestMangaSearchResult_Next(t *testing.T) {
 	}
 }
 func TestMangaSearchResult_Prev(t *testing.T) {
+	exampleMangaSearchResult := generateExampleMangaSearchResult(ExampleMAL)
 	type args struct {
 		obj *MangaSearchResult
 	}
@@ -187,16 +191,19 @@ func TestMAL_Manga_Top(t *testing.T) {
 	}
 }
 
-var exampleMangaTop = &MangaTop{
-	parent: &ExampleMAL.Manga,
-	Data:   nil,
-	Paging: Paging{
-		Previous: "https://api.myanimelist.net/v2/manga/ranking?offset=0&limit=3",
-		Next:     "https://api.myanimelist.net/v2/manga/ranking?offset=6&limit=3",
-	},
+func generateExampleMangaTop(mal *MAL) *MangaTop {
+	return &MangaTop{
+		parent: &mal.Manga,
+		Data:   nil,
+		Paging: Paging{
+			Previous: "https://api.myanimelist.net/v2/manga/ranking?offset=0&limit=3",
+			Next:     "https://api.myanimelist.net/v2/manga/ranking?offset=6&limit=3",
+		},
+	}
 }
 
 func TestMangaTop_Next(t *testing.T) {
+	exampleMangaTop := generateExampleMangaTop(ExampleMAL)
 	type args struct {
 		obj *MangaTop
 	}
@@ -230,6 +237,7 @@ func TestMangaTop_Next(t *testing.T) {
 	}
 }
 func TestMangaTop_Prev(t *testing.T) {
+	exampleMangaTop := generateExampleMangaTop(ExampleMAL)
 	type args struct {
 		obj *MangaTop
 	}

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var ExampleMAL *MAL
+var ExampleMAL = new(MAL)
 
 var secretFileName = "secret.yaml"
 
