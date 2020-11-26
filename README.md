@@ -22,7 +22,7 @@
 		- [Set tokens manually](#set-tokens-manually)
 	- [Search anime (manga)](#search-anime-manga)
 	- [Details about certain anime (manga)](#details-about-certain-anime-manga)
-	- [Ranked anime (manga)](#ranked-anime-manga)
+	- [Top anime (manga)](#top-anime-manga)
 	- [Seasonal anime](#seasonal-anime)
 	- [Anime suggestions](#anime-suggestions)
 	- [User information](#user-information)
@@ -90,7 +90,7 @@ _Reference: [New()](https://pkg.go.dev/github.com/camelva/myanimelist-go#New)_
 Every method of API requires user's **Access Token**, so its good idea to auth as soon as possible.   
 MyAnimeList uses OAuth2, so whole process consist of 2 steps: heading user to MyAnimeList's Login page and exchanging received temporaty token for long-term access token.  
   
-_Reference: [AuthURL()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.AuthURL) | [ExchangeToken()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.ExchangeToken)_ 
+_Reference: [Auth.LoginURL()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Auth.LoginURL) | [Auth.ExchangeToken()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Auth.ExchangeToken)_ 
   
 Example code:   
 ```go  
@@ -116,7 +116,7 @@ func main() {
 // Step 1: Heading user to MyAnimeList login page
 func loginHandler(w http.ResponseWriter, req *http.Request) {
 	// creating authorization URL
-	loginPageURL := mal.AuthURL()
+	loginPageURL := mal.Auth.LoginURL()
 	// and redirecting user there
 	http.Redirect(w, req, loginPageURL, http.StatusFound)
 }
@@ -126,7 +126,7 @@ func callbackHandler(w http.ResponseWriter, req *http.Request) {
 	// gathering temporary code from request query
 	code := req.FormValue("code")
 	// and exchange it for long-lasting access token
-	userInfo, err := mal.ExchangeToken(code)
+	userInfo, err := mal.Auth.ExchangeToken(code)
 	if err != nil {
 		// handle error
 		return
@@ -137,7 +137,7 @@ func callbackHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func appHandler(w http.ResponseWriter, req *http.Request) {
-	if mal.GetTokenInfo().AccessToken == "" {
+	if mal.Auth.GetTokenInfo().AccessToken == "" {
 		http.Redirect(w, req, "/login", http.StatusFound)
 	}
 	// do some stuff
@@ -148,152 +148,152 @@ func appHandler(w http.ResponseWriter, req *http.Request) {
 Every user's access tokens have certain time they are valid. Standard, its 1 month (31 day) . You can always check when token will expire by reading `ExpireAt` field of `UserCredentials`.  
 If token already expired - you need to ask user to do authorization steps again.
 But if token still valid - you can request **token update** and receive new token with fresh duration without even user's interaction.
-For this, just call `mal.RefreshToken()`:  
+For this, just call `mal.Auth.RefreshToken()`:  
 ```go
-newCredentials, err := mal.RefreshToken()  
+newCredentials, err := mal.Auth.RefreshToken()  
 ```
 
-_Reference: [RefreshToken()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.RefreshToken)_
+_Reference: [Auth.RefreshToken()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Auth.RefreshToken)_
 
 ---
 #### Get tokens
 You can get your current user's tokens by running:
 ```go
-mal.GetTokenInfo()
+mal.Auth.GetTokenInfo()
 ```
 
-_Reference: [GetTokenInfo()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.GetTokenInfo)_
+_Reference: [Auth.GetTokenInfo()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Auth.GetTokenInfo)_
 
 ___
 #### Set tokens manually 
 If you have your user's tokens saved somewhere and want to continue session without forcing user to log in again - you can set tokens manually. 
 ```go
-mal.SetTokenInfo(accessToken string, refreshToken string, expireAt time.Time)
+mal.Auth.SetTokenInfo(accessToken string, refreshToken string, expireAt time.Time)
 ```
 
-_Reference: [SetTokenInfo()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.SetTokenInfo)_
+_Reference: [Auth.SetTokenInfo()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Auth.SetTokenInfo)_
 
 ---
 ### Search anime (manga)
-Searching is simple - just use `mal.AnimeSearch` or `mal.MangaSearch`with your _query string_ and `PagingSettings` as parameters. These requests is multi-paged, so look at [Multiple pages](#multiple-pages) for additional info.
+Searching is simple - just use `mal.Anime.Search` or `mal.Manga.Search`with your _query string_ and `PagingSettings` as parameters. These requests are multi-paged, so look at [Multiple pages](#multiple-pages) for additional info.
 
-_Reference:  [AnimeSearch](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.AnimeSearch) | [MangaSearch](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.MangaSearch)_
+_Reference:  [Anime.Search()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Anime.Search) | [Manga.Search()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Manga.Search)_
 
 ___
 ### Details about certain anime (manga)
-For retrieving detailed info there are `mal.AnimeDetails` and `mal.MangaDetails` methods. Both accepts `ID` as first parameter, and, optionally, names of fields to gather. By default, these methods returns `AnimeDetails` (or `MangaDetails`) struct with fields `ID`, `Title` and `MainPicture`. To acquire more fields - you need to explicitly specify them by yourself. You can find list of all _Shared_, _Anime-only_ and _Manga-only_ fields at [Constants](https://pkg.go.dev/github.com/camelva/myanimelist-go#pkg-constants)
+For retrieving detailed info there are `mal.Anime.Details` and `mal.Manga.Details` methods. Both accepts `ID` as first parameter, and, optionally, names of fields to gather. By default, these methods returns `AnimeDetails` (or `MangaDetails`) struct with fields `ID`, `Title` and `MainPicture`. To acquire more fields - you need to explicitly specify them by yourself. You can find list of all _Shared_, _Anime-only_ and _Manga-only_ fields at [Constants](https://pkg.go.dev/github.com/camelva/myanimelist-go#pkg-constants)
 
-_Reference: [AnimeDetails()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.AnimeDetails) | [MangaDetails()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.MangaDetails)_
+_Reference: [Anime.Details()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Anime.Details) | [Manga.Details()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Manga.Details)_
 
 ___
-### Ranked anime (manga)
-Use `mal.AnimeRanking` or `mal.MangaRanking`. First parameter is `RankingType`, second - `PagingSettings` (for more info about paged results see [Multiple pages](#multiple-pages)). There are couple of different ranks at MyAnimeList, you can find all of them at official documentation - [Anime ranks](https://myanimelist.net/apiconfig/references/api/v2#operation/anime_ranking_get) and [Manga ranks](https://myanimelist.net/apiconfig/references/api/v2#operation/manga_ranking_get) or at library documentation's [constants section](https://pkg.go.dev/github.com/camelva/myanimelist-go#pkg-constants)
+### Top anime (manga)
+Use `mal.Anime.Top` or `mal.Manga.Top`. First parameter is `RankingType`, second - `PagingSettings` (for more info about paged results see [Multiple pages](#multiple-pages)). There are a couple of different ranks at MyAnimeList, you can find all of them at the official documentation - [Anime ranks](https://myanimelist.net/apiconfig/references/api/v2#operation/anime_ranking_get) and [Manga ranks](https://myanimelist.net/apiconfig/references/api/v2#operation/manga_ranking_get) or at library's documentation [constants section](https://pkg.go.dev/github.com/camelva/myanimelist-go#pkg-constants).
 
-_Reference: [AnimeRanking()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.AnimeRanking) | [MangaRanking()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.MangaRanking)_
+_Reference: [Anime.Top()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Anime.Top) | [Manga.Top()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Manga.Top)_
 
 ___
 ### Seasonal anime
 You can get anime list of certain year's season by running 
 ```go
-mal.SeasonalAnime(year int, season string, sort string, settings PagingSettings)
+mal.Anime.Seasonal(year int, season string, sort string, settings PagingSettings)
 ```
 Only `year` and `season` parameters are required, rest are optional. For `season` use one of these constants: `SeasonWinter`, `SeasonSpring`, `SeasonSummer` or `SeasonFall`. 
 By passing non-zero `sort` parameter, you can sort result by _score_ or _number of users, added anime to their list_. For this, use either `SortByScore` or `SortByUsersLists` constants.
-For addional info about `PagingSettings` see [Multiple pages](#multiple-pages)
+For additional info about `PagingSettings` see [Multiple pages](#multiple-pages)
 
-_Reference: [SeasonalAnime()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.SeasonalAnime)_
+_Reference: [Anime.Seasonal()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Anime.Seasonal)_
 
 ___
 ### Anime suggestions
 Get anime suggestions for current user by running:
 ```go
-mal.SuggestedAnime(setting PagingSettings)
+mal.Anime.Suggestions(setting PagingSettings)
 ```
 For additional info about `PagingSettings` see [Multiple pages](#multiple-pages)
 
-_Reference: [SuggestedAnime()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.SuggestedAnime)_
+_Reference: [Anime.Suggestions()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Anime.Suggestions)_
 
 ___
 ### User information
 At the moment, you can acquire information only about current user _(but seems like this API method will support different usernames too)_
 ```go
-mal.UserInformation(settings PagingSetting)
+mal.User.Info(settings PagingSetting)
 ```
 For additional info about `PagingSettings` see [Multiple pages](#multiple-pages)
 
-_Reference: [UserInformation()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.UserInformation)_
+_Reference: [User.Info()](https://pkg.go.dev/github.com/camelva/myanimelist-go#User.Info)_
 
 ___
 ### User anime (manga) list
 ```go
-mal.UserAnimeList(username string, status string, sort string, settings PagingSettings)
-mal.UserMangaList(username string, status string, sort string, settings PagingSettings)
+mal.Anime.List.User(username string, status string, sort string, settings PagingSettings)
+mal.Manga.List.User(username string, status string, sort string, settings PagingSettings)
 ```
 Here you can use any username to request their anime/manga list. To get current user - pass empty string.
-By passing `status` you can filter response to containt only entries with same status. 
+By passing `status` you can filter response to contain only entries with same status. 
 You can look at library documentation's [constants section](https://pkg.go.dev/github.com/camelva/myanimelist-go#pkg-constants) to find all _Shared Statuses_, _Anime-only_ and _Manga-only_
-Also you can sort result by passing corresponding parameter. List of all available sort contants can also be found at [documentation](https://pkg.go.dev/github.com/camelva/myanimelist-go#pkg-constants) 
-For additional info about `PagingSettings` see [Multiple pages](#multiple-pages)
+Also you can sort result by passing corresponding parameter. List of all available sort constants can also be found at [documentation](https://pkg.go.dev/github.com/camelva/myanimelist-go#pkg-constants) 
+For additional info about `PagingSettings` see [Multiple pages](#multiple-pages).
 
-_Reference: [UserAnimeList()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.UserAnimeList) | [UserMangaList()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.UserMangaList)_
+_Reference: [AnimeList.User()](https://pkg.go.dev/github.com/camelva/myanimelist-go#AnimeList.User) | [MangaList.User()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MangaList.User)_
 
 ___
 ### Update anime (manga) status
 To add entry to your list or update their statuses you should use corresponding methods: 
 ```go
-mal.UpdateAnimeStatus(config AnimeConfig)
-mal.UpdateMangaStatus(config MangaConfig)
+mal.Anime.List.Update(config AnimeConfig)
+mal.Manga.List.Update(config MangaConfig)
 ```
-_Reference: [UpdateAnimeStatus()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.UpdateAnimeStatus) | [UpdateMangaStatus()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.UpdateMangaStatus)_
+_Reference: [AnimeList.Update()](https://pkg.go.dev/github.com/camelva/myanimelist-go#AnimeList.Update) | [MangaList.Update()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MangaList.Update)_
 
 Both of them require appropriate `config` struct. 
 It's recommended to create them by running `NewAnimeConfig(id int)` (`NewMangaConfig(id int)`).
 These config structures have a bunch of helper methods to set values you want to change. Such as `SetScore`, `SetStatus` and so on. For list of all available methods see documentation reference.
 
-_Reference: [AnimeConfig()](https://pkg.go.dev/github.com/camelva/myanimelist-go#AnimeConfig) | [MangaConfig()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MangaConfig)_
+_Reference: [AnimeConfig](https://pkg.go.dev/github.com/camelva/myanimelist-go#AnimeConfig) | [MangaConfig](https://pkg.go.dev/github.com/camelva/myanimelist-go#MangaConfig)_
 
 ---
 ### Remove entry from list
-To remove anime from your list use `mal.DeleteAnimeFromList(id int)` or `mal.DeleteMangaFromList(id int)` for manga. 
-If there is no entry with such `id` in your list - call still considered as successful and returns no error
+To remove anime from your list use `mal.Anime.List.Remove(id int)` or `mal.Manga.List.Remove(id int)` for manga. 
+If there is no entry with such `id` in your list - call still considered as successful and returns no error.
 
-_Reference: [DeleteAnimeFromList()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.DeleteAnimeFromList) | [DeleteMangaFromList()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.DeleteMangaFromList)_
+_Reference: [AnimeList.Remove()](https://pkg.go.dev/github.com/camelva/myanimelist-go#AnimeList.Remove) | [MangaList.Remove()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MangaList.Remove)_
  
 ___
 ### Forum
 #### Forum boards
 ```go
-mal.ForumBoards()
+mal.Forum.Boards()
 ```
 Returns information about all forum categories, boards and sub-boards
 
-_Reference: [ForumBoards()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.ForumBoards)_
+_Reference: [Forum.Boards()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Forum.Boards)_
 
 ___
 #### Forum search
 Forum search provided by 
 ```go
-mal.ForumSearchTopics(searchOpts ForumSearchSettings, settings PagingSettings)
+mal.Forum.Search(searchOpts ForumSearchSettings, settings PagingSettings)
 ```
-`ForumSearchSettings` containt all your search paremeters. There is no required fields, but you need to fill at least one of them. See documentation for additional info.
-For additional info about `PagingSettings` see [Multiple pages](#multiple-pages)
+`ForumSearchSettings` contain all your search parameters. There is no required fields, but you need to fill at least one of them. See documentation for additional info.
+For additional info about `PagingSettings` see [Multiple pages](#multiple-pages).
 
-_Reference: [ForumSearchTopics()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.ForumSearchTopics) | [ForumSearchSettings](https://pkg.go.dev/github.com/camelva/myanimelist-go#ForumSearchSettings)_
+_Reference: [Forum.Search()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Forum.Search) | [ForumSearchSettings](https://pkg.go.dev/github.com/camelva/myanimelist-go#ForumSearchSettings)_
 
 ___
 #### Forum topic information
 To acquire information about certain topic use:
 ```go
-mal.ForumTopic(id int, settings PagingSettings)
+mal.Forum.Topic(id int, settings PagingSettings)
 ```
 For additional info about `PagingSettings` see [Multiple pages](#multiple-pages)
 
-_Reference: [ForumTopic()](https://pkg.go.dev/github.com/camelva/myanimelist-go#MAL.ForumTopic)_
+_Reference: [Forum.Topic()](https://pkg.go.dev/github.com/camelva/myanimelist-go#Forum.Topic)_
 
 ## Multiple pages
-Some requests (such as `AnimeRanking()`) returns a lot of data, so result is splitted into multiple pages.  
+Some requests (such as `Anime.Top()`) returns a lot of data, so result split into multiple pages.  
 You can detect such functions by having a special input parameter - struct `PagingSettings` with two fields: `limit` and `offset` (of course you can specify only field you need, or even leave both at zero).   
-These functions' returned value (let's call it `PagedResult`) is always struct with, among other things, field `Paging`. This field contains URLs to next and previous pages accordingly. And, for simplified usage, every of such `PagedResult` structures have `Next` and `Prev` methods. Which accepts `MAL` instance and optional new `limit` value as parameters.  
+These functions' returned value (let's call it `PagedResult`) is always struct with, among other things, field `Paging`. This field contains URLs to next and previous pages accordingly. So, for simplified usage, every of such `PagedResult` structures have `Next` and `Prev` methods. Which optionally accepts new `limit` value as parameters.  
   
 Example usage:  
 ```go  
@@ -308,7 +308,7 @@ var mal = &myanimelist.MAL{}
 
 func main() {
 	// lets request 10 top anime, ranked by popularity
-	popularAnime, err := mal.AnimeRanking(
+	popularAnime, err := mal.Anime.Top(
 		myanimelist.RankByPopularity,
 		myanimelist.PagingSettings{Limit: 10})
 	if err != nil {
@@ -316,12 +316,12 @@ func main() {
 	}
     // showed result to user or something else
     // but now we want to get another 10 top anime
-    morePopularAnime, err := popularAnime.Next(mal)
+    morePopularAnime, err := popularAnime.Next()
     if err != nil {
     	panic(err) // example error handling
     }
     // and now we want more, but only 5
-    anotherPopularAnime, err := morePopularAnime.Next(mal, 5)
+    anotherPopularAnime, err := morePopularAnime.Next(5)
     if err != nil {
     	panic(err) // example error handling
     }
