@@ -26,28 +26,12 @@ type MAL struct {
 	logger *log.Logger
 
 	// Auth contain all authorization-related data
-	auth auth
-}
+	Auth Auth
 
-// Auth contain all authorization-related data
-type auth struct {
-	// application credentials required for authorization
-	clientID, clientSecret string
-
-	// token to identify user. Required for every request
-	userToken string
-
-	// token expiration time
-	tokenExpireAt time.Time
-
-	// required for receiving new user token
-	refreshToken string
-
-	// part of RFC7636 authorization
-	codeVerifier, codeChallenge string
-
-	// url to redirect after myAnimeList authorization
-	redirectURL string
+	Anime Anime
+	Manga Manga
+	Forum Forum
+	User  User
 }
 
 // New creates new MyAnimeList client with specified parameters.
@@ -67,15 +51,21 @@ func New(config Config) (*MAL, error) {
 	}
 
 	mal := &MAL{
-		host: apiEndpoint,
-		auth: auth{
-			clientID:     config.ClientID,
-			clientSecret: config.ClientSecret,
-			redirectURL:  config.RedirectURL,
-		},
+		host:   apiEndpoint,
 		client: &http.Client{Timeout: 5 * time.Second},
 		logger: log.New(os.Stderr, "[MAL] ", 0),
 	}
+
+	mal.Auth = Auth{
+		mal:          mal,
+		clientID:     config.ClientID,
+		clientSecret: config.ClientSecret,
+		redirectURL:  config.RedirectURL,
+	}
+	mal.Anime = Anime{mal: mal, List: AnimeList{anime: &mal.Anime}}
+	mal.Manga = Manga{mal: mal, List: MangaList{manga: &mal.Manga}}
+	mal.Forum = Forum{mal: mal}
+	mal.User = User{mal: mal}
 
 	if config.HTTPClient != nil {
 		mal.client = config.HTTPClient
@@ -98,31 +88,13 @@ type Config struct {
 	Logger       *log.Logger
 }
 
-type ErrorResponse struct {
+type errorResponse struct {
 	Err     string `json:"error"`
 	Message string `json:"message, omitempty"`
 }
 
-func (e *ErrorResponse) Error() string {
+func (e *errorResponse) Error() string {
 	return fmt.Sprintf("myanimelist returned error: %s. With message: %s", e.Err, e.Message)
-}
-
-// GetTokenInfo returns all required user's credentials: access token,
-// refresh token and access token's expiration date.
-func (mal *MAL) GetTokenInfo() *UserCredentials {
-	return &UserCredentials{
-		AccessToken:  mal.auth.userToken,
-		RefreshToken: mal.auth.refreshToken,
-		ExpireAt:     mal.auth.tokenExpireAt,
-	}
-}
-
-// SetTokenInfo completely rewrites saved user's credentials, so use it very careful.
-// In case you erased correct tokens - lead user to authorization page again.
-func (mal *MAL) SetTokenInfo(accessToken string, refreshToken string, expire time.Time) {
-	mal.auth.userToken = accessToken
-	mal.auth.refreshToken = refreshToken
-	mal.auth.tokenExpireAt = expire
 }
 
 // requestRaw makes actual request and returns everything we got
@@ -153,7 +125,7 @@ func (mal *MAL) requestRaw(method string, path string, data url.Values) (*http.R
 
 	// Only add authorization header if its not auth-related request
 	if !strings.Contains(apiURL.Path, "v1/oauth2") {
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", mal.auth.userToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", mal.Auth.userToken))
 	}
 
 	if method == http.MethodPost || method == http.MethodPatch {
@@ -189,7 +161,7 @@ func (mal *MAL) request(destination interface{}, method string, path string, dat
 	}
 
 	// Try to parse error message
-	errorMsg := new(ErrorResponse)
+	errorMsg := new(errorResponse)
 	if err := json.Unmarshal(respBody, errorMsg); err != nil {
 		return err
 	}

@@ -8,14 +8,19 @@ import (
 	"time"
 )
 
+type Forum struct {
+	mal *MAL
+}
+
 // ForumBoards return list of all forum's categories.
-func (mal *MAL) ForumBoards() (*ForumCategories, error) {
+func (f *Forum) Boards() (*ForumCategories, error) {
 	method := http.MethodGet
 	path := "./forum/boards"
+
 	data := url.Values{}
 
-	var categories = new(ForumCategories)
-	if err := mal.request(categories, method, path, data); err != nil {
+	var categories = &ForumCategories{}
+	if err := f.mal.request(categories, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -34,24 +39,25 @@ type ForumBoard struct {
 	ID          int             `json:"id"`
 	Title       string          `json:"title"`
 	Description string          `json:"description"`
-	Subboards   []ForumSubboard `json:"subboards"`
+	SubBoards   []ForumSubBoard `json:"subboards"`
 }
-type ForumSubboard struct {
+type ForumSubBoard struct {
 	ID    int    `json:"id"`
 	Title string `json:"title"`
 }
 
 // ForumTopic retrieves info about topic with provided topicID.
-func (mal *MAL) ForumTopic(topicID int, settings PagingSettings) (*ForumTopic, error) {
+func (f *Forum) Topic(topicID int, settings PagingSettings) (*ForumTopic, error) {
 	method := http.MethodGet
 	path := fmt.Sprintf("./forum/topic/%d", topicID)
+
 	data := url.Values{}
 
 	settings.set(&data)
 
-	topicInfo := new(ForumTopic)
+	topicInfo := &ForumTopic{parent: f}
 
-	if err := mal.request(topicInfo, method, path, data); err != nil {
+	if err := f.mal.request(topicInfo, method, path, data); err != nil {
 		return nil, err
 	}
 	return topicInfo, nil
@@ -60,7 +66,8 @@ func (mal *MAL) ForumTopic(topicID int, settings PagingSettings) (*ForumTopic, e
 // ForumTopic stores topic title, poll, array of posts.
 // Use Prev() and Next() methods to retrieve corresponding result pages.
 type ForumTopic struct {
-	Data struct {
+	parent *Forum
+	Data   struct {
 		Title string      `json:"title"`
 		Posts []ForumPost `json:"posts"`
 		Poll  Poll        `json:"poll"`
@@ -94,17 +101,17 @@ type PollOption struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *ForumTopic) Prev(client *MAL, limit ...int) (result *ForumTopic, err error) {
-	result = new(ForumTopic)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *ForumTopic) Prev(limit ...int) (result *ForumTopic, err error) {
+	result = &ForumTopic{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *ForumTopic) Next(client *MAL, limit ...int) (result *ForumTopic, err error) {
-	result = new(ForumTopic)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *ForumTopic) Next(limit ...int) (result *ForumTopic, err error) {
+	result = &ForumTopic{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 
@@ -120,9 +127,10 @@ type ForumSearchSettings struct {
 
 // ForumSearchTopics implements advanced search from website.
 // Use ForumSearchSettings struct to set search options.
-func (mal *MAL) ForumSearchTopics(searchOpts ForumSearchSettings, settings PagingSettings) (*ForumSearchResult, error) {
+func (f *Forum) Search(searchOpts ForumSearchSettings, settings PagingSettings) (*ForumSearchResult, error) {
 	method := http.MethodGet
 	path := "./forum/topics"
+
 	data := url.Values{}
 
 	// only this sort method working yet
@@ -148,8 +156,8 @@ func (mal *MAL) ForumSearchTopics(searchOpts ForumSearchSettings, settings Pagin
 
 	settings.set(&data)
 
-	result := new(ForumSearchResult)
-	if err := mal.request(result, method, path, data); err != nil {
+	result := &ForumSearchResult{parent: f}
+	if err := f.mal.request(result, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -159,6 +167,7 @@ func (mal *MAL) ForumSearchTopics(searchOpts ForumSearchSettings, settings Pagin
 // ForumSearchResult stores array with search result entries.
 // Use Prev() and Next() methods to retrieve corresponding result pages.
 type ForumSearchResult struct {
+	parent *Forum
 	Data   []ForumSearchEntry `json:"data"`
 	Paging Paging             `json:"paging"`
 }
@@ -179,16 +188,16 @@ type ForumUser struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *ForumSearchResult) Prev(client *MAL, limit ...int) (result *ForumSearchResult, err error) {
-	result = new(ForumSearchResult)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *ForumSearchResult) Prev(limit ...int) (result *ForumSearchResult, err error) {
+	result = &ForumSearchResult{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *ForumSearchResult) Next(client *MAL, limit ...int) (result *ForumSearchResult, err error) {
-	result = new(ForumSearchResult)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *ForumSearchResult) Next(limit ...int) (result *ForumSearchResult, err error) {
+	result = &ForumSearchResult{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }

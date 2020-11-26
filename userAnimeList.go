@@ -10,15 +10,20 @@ import (
 	"time"
 )
 
+type AnimeList struct {
+	anime *Anime
+}
+
 // DeleteAnimeFromList remove entry with certain ID from current user's list.
 // If the specified entry does not exist in user's list,
 // function acts like call was successful and returns nil
-func (mal *MAL) DeleteAnimeFromList(animeID int) error {
+func (al *AnimeList) Remove(animeID int) error {
 	method := http.MethodDelete
 	path := fmt.Sprintf("./anime/%d/my_list_status", animeID)
+
 	query := url.Values{}
 
-	resp, err := mal.requestRaw(method, path, query)
+	resp, err := al.anime.mal.requestRaw(method, path, query)
 	if err != nil {
 		return err
 	}
@@ -31,7 +36,7 @@ func (mal *MAL) DeleteAnimeFromList(animeID int) error {
 
 // UpdateAnimeStatus changes specified anime' properties according to provided AnimeConfig.
 // Returns updated AnimeStatus or error, if any.
-func (mal *MAL) UpdateAnimeStatus(config AnimeConfig) (*AnimeStatus, error) {
+func (al *AnimeList) Update(config AnimeConfig) (*AnimeStatus, error) {
 	method := http.MethodPatch
 
 	animeID, ok := config["id"]
@@ -47,7 +52,7 @@ func (mal *MAL) UpdateAnimeStatus(config AnimeConfig) (*AnimeStatus, error) {
 	}
 
 	animeS := new(AnimeStatus)
-	if err := mal.request(animeS, method, path, data); err != nil {
+	if err := al.anime.mal.request(animeS, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -151,13 +156,14 @@ type AnimeStatus struct {
 // You can set status to retrieve only anime's with same status or use empty object.
 // You can sort list by using on of these constants: SortListByScore, SortListByUpdateDate,
 // SortListByTitle, SortListByStartDate, SortListByID or provide empty object to disable sorting
-func (mal *MAL) UserAnimeList(username string, status string, sort string, settings PagingSettings) (*UserAnimeList, error) {
+func (al *AnimeList) User(username string, status string, sort string, settings PagingSettings) (*UserAnimeList, error) {
 	if username == "" {
 		username = "@me"
 	}
 
 	method := http.MethodGet
 	path := fmt.Sprintf("./users/%s/animelist", username)
+
 	data := url.Values{}
 	if status != "" {
 		acceptable := makeList(append(generalStatuses, animeStatuses...))
@@ -174,8 +180,8 @@ func (mal *MAL) UserAnimeList(username string, status string, sort string, setti
 
 	settings.set(&data)
 
-	var userList = new(UserAnimeList)
-	if err := mal.request(userList, method, path, data); err != nil {
+	var userList = &UserAnimeList{parent: al}
+	if err := al.anime.mal.request(userList, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -183,7 +189,8 @@ func (mal *MAL) UserAnimeList(username string, status string, sort string, setti
 }
 
 type UserAnimeList struct {
-	Data []struct {
+	parent *AnimeList
+	Data   []struct {
 		Node       `json:"node"`
 		ListStatus AnimeListStatus `json:"list_status"`
 	} `json:"data"`
@@ -192,17 +199,17 @@ type UserAnimeList struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *UserAnimeList) Prev(client *MAL, limit ...int) (result *UserAnimeList, err error) {
-	result = new(UserAnimeList)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *UserAnimeList) Prev(limit ...int) (result *UserAnimeList, err error) {
+	result = &UserAnimeList{parent: obj.parent}
+	err = obj.parent.anime.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *UserAnimeList) Next(client *MAL, limit ...int) (result *UserAnimeList, err error) {
-	result = new(UserAnimeList)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *UserAnimeList) Next(limit ...int) (result *UserAnimeList, err error) {
+	result = &UserAnimeList{parent: obj.parent}
+	err = obj.parent.anime.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 

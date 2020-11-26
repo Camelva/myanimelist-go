@@ -8,17 +8,23 @@ import (
 	"time"
 )
 
+type Anime struct {
+	mal  *MAL
+	List AnimeList
+}
+
 // AnimeSearch return list of anime, performing search for similar as provided search string.
-func (mal *MAL) AnimeSearch(search string, settings PagingSettings) (*AnimeSearchResult, error) {
+func (a *Anime) Search(search string, settings PagingSettings) (*AnimeSearchResult, error) {
 	method := http.MethodGet
 	path := "./anime"
+
 	data := url.Values{
 		"q": {search},
 	}
 	settings.set(&data)
 
-	searchResult := new(AnimeSearchResult)
-	if err := mal.request(searchResult, method, path, data); err != nil {
+	searchResult := &AnimeSearchResult{parent: a}
+	if err := a.mal.request(searchResult, method, path, data); err != nil {
 		return nil, err
 	}
 	return searchResult, nil
@@ -27,7 +33,8 @@ func (mal *MAL) AnimeSearch(search string, settings PagingSettings) (*AnimeSearc
 // AnimeSearchResult stores array with search entries.
 // Use Prev() and Next() methods to retrieve corresponding result pages.
 type AnimeSearchResult struct {
-	Data []struct {
+	parent *Anime
+	Data   []struct {
 		Node `json:"node"`
 	} `json:"data"`
 	Paging Paging `json:"paging"`
@@ -35,27 +42,28 @@ type AnimeSearchResult struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *AnimeSearchResult) Prev(client *MAL, limit ...int) (result *AnimeSearchResult, err error) {
-	result = new(AnimeSearchResult)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *AnimeSearchResult) Prev(limit ...int) (result *AnimeSearchResult, err error) {
+	result = &AnimeSearchResult{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *AnimeSearchResult) Next(client *MAL, limit ...int) (result *AnimeSearchResult, err error) {
-	result = new(AnimeSearchResult)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *AnimeSearchResult) Next(limit ...int) (result *AnimeSearchResult, err error) {
+	result = &AnimeSearchResult{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 
 // AnimeDetails returns details about anime with provided ID.
 // You can control which fields to retrieve. For all fields use FieldAllAvailable.
 // With no fields provided api still returns ID, Title and MainPicture fields
-func (mal *MAL) AnimeDetails(animeID int, fields ...string) (*AnimeDetails, error) {
-	var acceptableArr = append(generalFields, animeFields...)
+func (a *Anime) Details(animeID int, fields ...string) (*AnimeDetails, error) {
 	method := http.MethodGet
 	path := fmt.Sprintf("./anime/%d", animeID)
+
+	var acceptableArr = append(generalFields, animeFields...)
 	acceptable := makeList(acceptableArr)
 
 	if fields[0] == FieldAllAvailable {
@@ -75,8 +83,8 @@ func (mal *MAL) AnimeDetails(animeID int, fields ...string) (*AnimeDetails, erro
 	}
 	data.Set("fields", fieldsString)
 
-	anime := new(AnimeDetails)
-	if err := mal.request(anime, method, path, data); err != nil {
+	anime := &AnimeDetails{}
+	if err := a.mal.request(anime, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -152,37 +160,39 @@ type AnimeDetails struct {
 	} `json:"statistics"`
 }
 
-// AnimeRanking returns list of top anime, for each measurement.
+// AnimeTop returns list of top anime, for each measurement.
 // For additional info, see: https://myanimelist.net/apiconfig/references/api/v2#operation/anime_ranking_get
 // Currently available ranks:
 // - RankAll, - RankAiring, - RankUpcoming, - RankTV, - RankOVA,
 // - RankMovie, - RankSpecial, - RankByPopularity, - RankFavorite.
-func (mal *MAL) AnimeRanking(rankingType string, settings PagingSettings) (*AnimeRanking, error) {
+func (a *Anime) Top(rankingType string, settings PagingSettings) (*AnimeTop, error) {
+	method := http.MethodGet
+	path := "./anime/ranking"
+
 	// Currently working rankings
 	acceptable := makeList(append(generalRankings, animeRankings...))
 	if _, ok := acceptable[rankingType]; !ok {
 		return nil, errors.New("undefined ranking type")
 	}
 
-	method := http.MethodGet
-	path := "./anime/ranking"
 	data := url.Values{
 		"ranking_type": {rankingType},
 	}
 	settings.set(&data)
 
-	animeRank := new(AnimeRanking)
-	if err := mal.request(animeRank, method, path, data); err != nil {
+	animeRank := &AnimeTop{parent: a}
+	if err := a.mal.request(animeRank, method, path, data); err != nil {
 		return nil, err
 	}
 
 	return animeRank, nil
 }
 
-// AnimeRanking contain arrays of Nodes (ID, Title, MainPicture) with their rank position.
+// AnimeTop contain arrays of Nodes (ID, Title, MainPicture) with their rank position.
 // Use Prev() and Next() methods to retrieve corresponding result pages.
-type AnimeRanking struct {
-	Data []struct {
+type AnimeTop struct {
+	parent *Anime
+	Data   []struct {
 		Node    `json:"node"`
 		Ranking struct {
 			Rank int `json:"rank"`
@@ -193,24 +203,24 @@ type AnimeRanking struct {
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *AnimeRanking) Next(client *MAL, limit ...int) (result *AnimeRanking, err error) {
-	result = new(AnimeRanking)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *AnimeTop) Next(limit ...int) (result *AnimeTop, err error) {
+	result = &AnimeTop{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *AnimeRanking) Prev(client *MAL, limit ...int) (result *AnimeRanking, err error) {
-	result = new(AnimeRanking)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *AnimeTop) Prev(limit ...int) (result *AnimeTop, err error) {
+	result = &AnimeTop{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // SeasonalAnime returns list of anime from certain year's season.
-// Year and Season fields are required. Rest are optional.
+// Season are required. Rest fields are optional.
 // For additional info see https://myanimelist.net/apiconfig/references/api/v2#operation/anime_ranking_get
-func (mal *MAL) SeasonalAnime(year int, season string, sort string, settings PagingSettings) (*SeasonalAnime, error) {
+func (a *Anime) Seasonal(year int, season string, sort string, settings PagingSettings) (*AnimeSeasonal, error) {
 	// Available season values
 	acceptable := makeList(seasons)
 	if _, ok := acceptable[season]; !ok {
@@ -233,18 +243,19 @@ func (mal *MAL) SeasonalAnime(year int, season string, sort string, settings Pag
 	}
 	settings.set(&data)
 
-	seasonal := new(SeasonalAnime)
-	if err := mal.request(seasonal, method, path, data); err != nil {
+	seasonal := &AnimeSeasonal{parent: a}
+	if err := a.mal.request(seasonal, method, path, data); err != nil {
 		return nil, err
 	}
 
 	return seasonal, nil
 }
 
-// SeasonalAnime contain array with basic anime nodes (ID, Title, MainPicture).
+// AnimeSeasonal contain array with basic anime nodes (ID, Title, MainPicture).
 // Use Prev() and Next() methods to retrieve corresponding result pages.
-type SeasonalAnime struct {
-	Data []struct {
+type AnimeSeasonal struct {
+	parent *Anime
+	Data   []struct {
 		Node `json:"node"`
 	} `json:"data"`
 	Paging Paging `json:"paging"`
@@ -256,30 +267,31 @@ type SeasonalAnime struct {
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *SeasonalAnime) Next(client *MAL, limit ...int) (result *SeasonalAnime, err error) {
-	result = new(SeasonalAnime)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *AnimeSeasonal) Next(limit ...int) (result *AnimeSeasonal, err error) {
+	result = &AnimeSeasonal{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *SeasonalAnime) Prev(client *MAL, limit ...int) (result *SeasonalAnime, err error) {
-	result = new(SeasonalAnime)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *AnimeSeasonal) Prev(limit ...int) (result *AnimeSeasonal, err error) {
+	result = &AnimeSeasonal{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // SuggestedAnime returns suggested anime for the authorized user.
 // If the user is new comer, expect to receive empty result.
-func (mal *MAL) SuggestedAnime(settings PagingSettings) (*SuggestedAnime, error) {
+func (a *Anime) Suggestions(settings PagingSettings) (*AnimeSuggestions, error) {
 	method := http.MethodGet
 	path := "./anime/suggestions"
+
 	data := url.Values{}
 	settings.set(&data)
 
-	suggestions := new(SuggestedAnime)
-	if err := mal.request(suggestions, method, path, data); err != nil {
+	suggestions := &AnimeSuggestions{parent: a}
+	if err := a.mal.request(suggestions, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -288,8 +300,9 @@ func (mal *MAL) SuggestedAnime(settings PagingSettings) (*SuggestedAnime, error)
 
 // SuggestedAnime contain arrays of anime Nodes (ID, Title, MainPicture), suggested for current user.
 // Use Prev() and Next() methods to retrieve corresponding result pages.
-type SuggestedAnime struct {
-	Data []struct {
+type AnimeSuggestions struct {
+	parent *Anime
+	Data   []struct {
 		Node `json:"node"`
 	} `json:"data"`
 	Paging Paging `json:"paging"`
@@ -297,17 +310,17 @@ type SuggestedAnime struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *SuggestedAnime) Prev(client *MAL, limit ...int) (result *SuggestedAnime, err error) {
-	result = new(SuggestedAnime)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *AnimeSuggestions) Prev(limit ...int) (result *AnimeSuggestions, err error) {
+	result = &AnimeSuggestions{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *SuggestedAnime) Next(client *MAL, limit ...int) (result *SuggestedAnime, err error) {
-	result = new(SuggestedAnime)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *AnimeSuggestions) Next(limit ...int) (result *AnimeSuggestions, err error) {
+	result = &AnimeSuggestions{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 

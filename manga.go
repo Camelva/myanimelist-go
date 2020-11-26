@@ -8,8 +8,13 @@ import (
 	"time"
 )
 
+type Manga struct {
+	mal  *MAL
+	List MangaList
+}
+
 // MangaSearch return list of manga, performing search for similar as provided search string.
-func (mal *MAL) MangaSearch(search string, settings PagingSettings) (*MangaSearchResult, error) {
+func (m *Manga) Search(search string, settings PagingSettings) (*MangaSearchResult, error) {
 	method := http.MethodGet
 	path := "./manga"
 	data := url.Values{
@@ -17,8 +22,8 @@ func (mal *MAL) MangaSearch(search string, settings PagingSettings) (*MangaSearc
 	}
 	settings.set(&data)
 
-	searchResult := new(MangaSearchResult)
-	if err := mal.request(searchResult, method, path, data); err != nil {
+	searchResult := &MangaSearchResult{parent: m}
+	if err := m.mal.request(searchResult, method, path, data); err != nil {
 		return nil, err
 	}
 	return searchResult, nil
@@ -27,7 +32,8 @@ func (mal *MAL) MangaSearch(search string, settings PagingSettings) (*MangaSearc
 // MangaSearchResult stores array with search entries.
 // Use Prev() and Next() methods to retrieve corresponding result pages.
 type MangaSearchResult struct {
-	Data []struct {
+	parent *Manga
+	Data   []struct {
 		Node `json:"node"`
 	} `json:"data"`
 	Paging Paging `json:"paging"`
@@ -35,27 +41,28 @@ type MangaSearchResult struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *MangaSearchResult) Prev(client *MAL, limit ...int) (result *MangaSearchResult, err error) {
-	result = new(MangaSearchResult)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *MangaSearchResult) Prev(limit ...int) (result *MangaSearchResult, err error) {
+	result = &MangaSearchResult{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *MangaSearchResult) Next(client *MAL, limit ...int) (result *MangaSearchResult, err error) {
-	result = new(MangaSearchResult)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *MangaSearchResult) Next(limit ...int) (result *MangaSearchResult, err error) {
+	result = &MangaSearchResult{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 
 // MangaDetails returns details about manga with provided ID.
 // You can control which fields to retrieve. For all fields use FieldAllAvailable.
 // With no fields provided api still returns ID, Title and MainPicture fields
-func (mal *MAL) MangaDetails(mangaID int, fields ...string) (*MangaDetails, error) {
-	acceptableArr := append(generalFields, mangaFields...)
+func (m *Manga) Details(mangaID int, fields ...string) (*MangaDetails, error) {
 	method := http.MethodGet
 	path := fmt.Sprintf("./manga/%d", mangaID)
+
+	acceptableArr := append(generalFields, mangaFields...)
 	acceptable := makeList(acceptableArr)
 
 	if fields[0] == FieldAllAvailable {
@@ -76,7 +83,7 @@ func (mal *MAL) MangaDetails(mangaID int, fields ...string) (*MangaDetails, erro
 	data.Set("fields", fieldsString)
 
 	manga := new(MangaDetails)
-	if err := mal.request(manga, method, path, data); err != nil {
+	if err := m.mal.request(manga, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -154,7 +161,7 @@ type MangaDetails struct {
 // Currently available ranks:
 // - RankAll, - RankManga, - RankNovels, - RankOneShots, - RankDoujinshi,
 // - RankManhwa, - RankManhua, - RankByPopularity, - RankFavorite.
-func (mal *MAL) MangaRanking(rankingType string, settings PagingSettings) (*MangaRanking, error) {
+func (m *Manga) Top(rankingType string, settings PagingSettings) (*MangaTop, error) {
 	// Current working rankings
 	acceptable := makeList(append(generalRankings, mangaRankings...))
 	if _, ok := acceptable[rankingType]; !ok {
@@ -163,13 +170,14 @@ func (mal *MAL) MangaRanking(rankingType string, settings PagingSettings) (*Mang
 
 	method := http.MethodGet
 	path := "./manga/ranking"
+
 	data := url.Values{
 		"ranking_type": {rankingType},
 	}
 	settings.set(&data)
 
-	mangaRank := new(MangaRanking)
-	if err := mal.request(mangaRank, method, path, data); err != nil {
+	mangaRank := &MangaTop{parent: m}
+	if err := m.mal.request(mangaRank, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -178,8 +186,9 @@ func (mal *MAL) MangaRanking(rankingType string, settings PagingSettings) (*Mang
 
 // MangaRanking contain arrays of Nodes (ID, Title, MainPicture) with their rank position.
 // Use Prev() and Next() methods to retrieve corresponding result pages.
-type MangaRanking struct {
-	Data []struct {
+type MangaTop struct {
+	parent *Manga
+	Data   []struct {
 		Node    `json:"node"`
 		Ranking struct {
 			Rank int `json:"rank"`
@@ -190,16 +199,16 @@ type MangaRanking struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *MangaRanking) Prev(client *MAL, limit ...int) (result *MangaRanking, err error) {
-	result = new(MangaRanking)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *MangaTop) Prev(limit ...int) (result *MangaTop, err error) {
+	result = &MangaTop{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *MangaRanking) Next(client *MAL, limit ...int) (result *MangaRanking, err error) {
-	result = new(MangaRanking)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *MangaTop) Next(limit ...int) (result *MangaTop, err error) {
+	result = &MangaTop{parent: obj.parent}
+	err = obj.parent.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }

@@ -7,30 +7,46 @@ import (
 	"time"
 )
 
-type tokenResponse struct {
-	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+// Auth contain all authorization-related data
+type Auth struct {
+	mal *MAL
+
+	// application credentials required for authorization
+	clientID, clientSecret string
+
+	// token to identify user. Required for every request
+	userToken string
+
+	// token expiration time
+	tokenExpireAt time.Time
+
+	// required for receiving new user token
+	refreshToken string
+
+	// part of RFC7636 authorization
+	codeVerifier, codeChallenge string
+
+	// url to redirect after myAnimeList authorization
+	redirectURL string
 }
 
 var authorizeEndpoint = "https://myanimelist.net/v1/oauth2/authorize"
 var tokenEndpoint = "https://myanimelist.net/v1/oauth2/token"
 
-// AuthURL starts OAuth process and return user's auth URL.
+// LoginURL starts OAuth process and return login URL.
 // For additional info use this: https://myanimelist.net/apiconfig/references/authorization.
-func (mal *MAL) AuthURL() string {
+func (a *Auth) LoginURL() string {
 	// Generate PKCE codes - https://tools.ietf.org/html/rfc7636
-	mal.auth.codeVerifier = codeVerifier()
-	mal.auth.codeChallenge = codeChallenge(mal.auth.codeVerifier, codeChallengePlain)
+	a.codeVerifier = codeVerifier()
+	a.codeChallenge = codeChallenge(a.codeVerifier, codeChallengePlain)
 
 	reqURL, _ := url.Parse(authorizeEndpoint)
 
 	q := reqURL.Query()
 	q.Set("response_type", "code")
-	q.Set("client_id", mal.auth.clientID)
-	q.Set("redirect_uri", mal.auth.redirectURL)
-	q.Set("code_challenge", mal.auth.codeChallenge)
+	q.Set("client_id", a.clientID)
+	q.Set("redirect_uri", a.redirectURL)
+	q.Set("code_challenge", a.codeChallenge)
 
 	reqURL.RawQuery = q.Encode()
 
@@ -39,26 +55,26 @@ func (mal *MAL) AuthURL() string {
 
 // RetrieveToken use received from user's authorization code and send
 // it to server to receive user access token
-func (mal *MAL) ExchangeToken(authCode string) (*UserCredentials, error) {
+func (a *Auth) ExchangeToken(authCode string) (*UserCredentials, error) {
 	method := http.MethodPost
 	path := tokenEndpoint
 	data := url.Values{
-		"client_id":     {mal.auth.clientID},
-		"client_secret": {mal.auth.clientSecret},
+		"client_id":     {a.clientID},
+		"client_secret": {a.clientSecret},
 		"grant_type":    {"authorization_code"},
 		"code":          {authCode},
-		"redirect_uri":  {mal.auth.redirectURL},
-		"code_verifier": {mal.auth.codeVerifier},
+		"redirect_uri":  {a.redirectURL},
+		"code_verifier": {a.codeVerifier},
 	}
 
 	tokenResp := new(tokenResponse)
-	if err := mal.request(tokenResp, method, path, data); err != nil {
+	if err := a.mal.request(tokenResp, method, path, data); err != nil {
 		return nil, err
 	}
 
 	expirationDuration, err := time.ParseDuration(fmt.Sprintf("%ds", tokenResp.ExpiresIn))
 	if err != nil {
-		mal.logger.Printf("Parse duration error: %s\n", err)
+		a.mal.logger.Printf("Parse duration error: %s\n", err)
 		return nil, err
 	}
 
@@ -69,7 +85,7 @@ func (mal *MAL) ExchangeToken(authCode string) (*UserCredentials, error) {
 		RefreshToken: tokenResp.RefreshToken,
 		ExpireAt:     expireAt,
 	}
-	mal.SetTokenInfo(user.AccessToken, user.RefreshToken, user.ExpireAt)
+	a.SetTokenInfo(user.AccessToken, user.RefreshToken, user.ExpireAt)
 
 	return user, nil
 }
@@ -77,7 +93,7 @@ func (mal *MAL) ExchangeToken(authCode string) (*UserCredentials, error) {
 type codeChallengeMethod string
 
 const (
-	codeChallengePlain  codeChallengeMethod = "plain"
+	codeChallengePlain codeChallengeMethod = "plain"
 	// redundant for now, because MyAnimeList support only plain method yet
 	//codeChallengeSHA256 codeChallengeMethod = "S256"
 )
@@ -106,24 +122,24 @@ func codeChallenge(code string, _ codeChallengeMethod) string {
 	//return base64.URLEncoding.EncodeToString(encoded)
 }
 
-func (mal *MAL) RefreshToken() (*UserCredentials, error) {
+func (a *Auth) RefreshToken() (*UserCredentials, error) {
 	method := http.MethodPost
 	path := tokenEndpoint
 	data := url.Values{
 		"grant_type":    {"refresh_token"},
-		"refresh_token": {mal.auth.refreshToken},
-		"client_id":     {mal.auth.clientID},
-		"client_secret": {mal.auth.clientSecret},
+		"refresh_token": {a.refreshToken},
+		"client_id":     {a.clientID},
+		"client_secret": {a.clientSecret},
 	}
 
 	tokenResp := new(tokenResponse)
-	if err := mal.request(tokenResp, method, path, data); err != nil {
+	if err := a.mal.request(tokenResp, method, path, data); err != nil {
 		return nil, err
 	}
 
 	expirationDuration, err := time.ParseDuration(fmt.Sprintf("%ds", tokenResp.ExpiresIn))
 	if err != nil {
-		mal.logger.Printf("Parse duration error: %s\n", err)
+		a.mal.logger.Printf("Parse duration error: %s\n", err)
 		return nil, err
 	}
 
@@ -135,7 +151,7 @@ func (mal *MAL) RefreshToken() (*UserCredentials, error) {
 		ExpireAt:     expireAt,
 	}
 
-	mal.SetTokenInfo(user.AccessToken, user.RefreshToken, user.ExpireAt)
+	a.SetTokenInfo(user.AccessToken, user.RefreshToken, user.ExpireAt)
 	return user, nil
 }
 
@@ -143,4 +159,29 @@ type UserCredentials struct {
 	AccessToken  string
 	RefreshToken string
 	ExpireAt     time.Time
+}
+
+// GetTokenInfo returns all required user's credentials: access token,
+// refresh token and access token's expiration date.
+func (a *Auth) GetTokenInfo() *UserCredentials {
+	return &UserCredentials{
+		AccessToken:  a.userToken,
+		RefreshToken: a.refreshToken,
+		ExpireAt:     a.tokenExpireAt,
+	}
+}
+
+// SetTokenInfo completely rewrites saved user's credentials, so use it very careful.
+// In case you erased correct tokens - lead user to authorization page again.
+func (a *Auth) SetTokenInfo(accessToken string, refreshToken string, expire time.Time) {
+	a.userToken = accessToken
+	a.refreshToken = refreshToken
+	a.tokenExpireAt = expire
+}
+
+type tokenResponse struct {
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }

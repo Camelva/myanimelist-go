@@ -10,19 +10,25 @@ import (
 	"time"
 )
 
+type MangaList struct {
+	manga *Manga
+}
+
 // DeleteMangaFromList remove entry with certain ID from current user's list.
 // If the specified entry does not exist in user's list,
 // function acts like call was successful and returns nil
-func (mal *MAL) DeleteMangaFromList(animeID int) error {
+func (ml *MangaList) Remove(animeID int) error {
 	method := http.MethodDelete
 	path := fmt.Sprintf("./manga/%d/my_list_status", animeID)
+
 	query := url.Values{}
 
-	resp, err := mal.requestRaw(method, path, query)
+	resp, err := ml.manga.mal.requestRaw(method, path, query)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotFound {
 		return fmt.Errorf("unexpected status: %s", resp.Status)
 	}
@@ -107,7 +113,7 @@ func (c MangaConfig) SetComment(text string) MangaConfig {
 
 // UpdateMangaStatus changes specified manga' properties according to provided MangaConfig.
 // Returns updated MangaStatus or error, if any.
-func (mal *MAL) UpdateMangaStatus(config MangaConfig) (*MangaStatus, error) {
+func (ml *MangaList) Update(config MangaConfig) (*MangaStatus, error) {
 	method := http.MethodPatch
 
 	mangaID, ok := config["id"]
@@ -123,7 +129,7 @@ func (mal *MAL) UpdateMangaStatus(config MangaConfig) (*MangaStatus, error) {
 	}
 
 	mangaS := new(MangaStatus)
-	if err := mal.request(mangaS, method, path, data); err != nil {
+	if err := ml.manga.mal.request(mangaS, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -149,7 +155,7 @@ type MangaStatus struct {
 // You can set status to retrieve only manga's with same status or use empty object
 // You can sort list by using on of these constants: SortListByScore, SortListByUpdateDate,
 // SortListByTitle, SortListByStartDate, SortListByID or provide empty object to disable sorting
-func (mal *MAL) UserMangaList(username string, status string, sort string, settings PagingSettings) (*UserMangaList, error) {
+func (ml *MangaList) User(username string, status string, sort string, settings PagingSettings) (*UserMangaList, error) {
 	if username == "" {
 		username = "@me"
 	}
@@ -171,8 +177,8 @@ func (mal *MAL) UserMangaList(username string, status string, sort string, setti
 	}
 	settings.set(&data)
 
-	var userList = new(UserMangaList)
-	if err := mal.request(userList, method, path, data); err != nil {
+	var userList = &UserMangaList{parent: ml}
+	if err := ml.manga.mal.request(userList, method, path, data); err != nil {
 		return nil, err
 	}
 
@@ -180,7 +186,8 @@ func (mal *MAL) UserMangaList(username string, status string, sort string, setti
 }
 
 type UserMangaList struct {
-	Data []struct {
+	parent *MangaList
+	Data   []struct {
 		Node       `json:"node"`
 		ListStatus MangaListStatus `json:"list_status"`
 	} `json:"data"`
@@ -189,17 +196,17 @@ type UserMangaList struct {
 
 // Prev return previous result page.
 // If its first page - returns error.
-func (obj *UserMangaList) Prev(client *MAL, limit ...int) (result *UserMangaList, err error) {
-	result = new(UserMangaList)
-	err = client.getPage(result, obj.Paging, -1, limit)
+func (obj *UserMangaList) Prev(limit ...int) (result *UserMangaList, err error) {
+	result = &UserMangaList{parent: obj.parent}
+	err = obj.parent.manga.mal.getPage(result, obj.Paging, -1, limit)
 	return
 }
 
 // Next return next result page.
 // If its last page - returns error.
-func (obj *UserMangaList) Next(client *MAL, limit ...int) (result *UserMangaList, err error) {
-	result = new(UserMangaList)
-	err = client.getPage(result, obj.Paging, 1, limit)
+func (obj *UserMangaList) Next(limit ...int) (result *UserMangaList, err error) {
+	result = &UserMangaList{parent: obj.parent}
+	err = obj.parent.manga.mal.getPage(result, obj.Paging, 1, limit)
 	return
 }
 

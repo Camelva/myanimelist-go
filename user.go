@@ -6,23 +6,27 @@ import (
 	"time"
 )
 
+type User struct {
+	mal *MAL
+}
+
 // UserInformation can only retrieve info about current user for now.
-func (mal *MAL) UserInformation() (*UserInformation, error) {
+func (u *User) Info() (*UserInfo, error) {
 	method := http.MethodGet
 	path := "./users/@me"
 	data := url.Values{
 		"fields": {"anime_statistics"},
 	}
 
-	userInfo := new(UserInformation)
-	if err := mal.request(userInfo, method, path, data); err != nil {
+	userInfo := new(UserInfo)
+	if err := u.mal.request(userInfo, method, path, data); err != nil {
 		return nil, err
 	}
 
 	return userInfo, nil
 }
 
-type UserInformation struct {
+type UserInfo struct {
 	ID              int             `json:"id"`
 	Name            string          `json:"name"`
 	Location        string          `json:"location"`
