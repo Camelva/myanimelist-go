@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMAL_DeleteMangaFromList(t *testing.T) {
+func TestMAL_Manga_List_Remove(t *testing.T) {
 	type args struct {
 		ID int
 	}
@@ -22,14 +22,14 @@ func TestMAL_DeleteMangaFromList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mal := ExampleMAL
-			if err := mal.DeleteMangaFromList(tt.args.ID); (err != nil) != tt.wantErr {
-				t.Errorf("DeleteMangaFromList() error = %v, wantErr %v", err, tt.wantErr)
+			if err := mal.Manga.List.Remove(tt.args.ID); (err != nil) != tt.wantErr {
+				t.Errorf("TestMAL_Manga_List_Remove() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestMAL_UserMangaList(t *testing.T) {
+func TestMAL_Manga_List_User(t *testing.T) {
 	type args struct {
 		username string
 		status   string
@@ -65,20 +65,20 @@ func TestMAL_UserMangaList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mal := ExampleMAL
-			got, err := mal.UserMangaList(tt.args.username, tt.args.status, tt.args.sort, tt.args.settings)
+			got, err := mal.Manga.List.User(tt.args.username, tt.args.status, tt.args.sort, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UserMangaList() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Manga_List_User() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("UserMangaList() got nil as result")
+				t.Error("TestMAL_Manga_List_User() got nil as result")
 				return
 			}
 		})
 	}
 }
 
-func TestMAL_UpdateMangaStatus(t *testing.T) {
+func TestMAL_Manga_List_Update(t *testing.T) {
 	type args struct {
 		config MangaConfig
 	}
@@ -105,19 +105,19 @@ func TestMAL_UpdateMangaStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mal := ExampleMAL
-			got, err := mal.UpdateMangaStatus(tt.args.config)
+			got, err := mal.Manga.List.Update(tt.args.config)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UpdateMangaStatus() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Manga_List_Update() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if got == nil {
-				t.Errorf("UpdateMangaStatus() got nil as result")
+				t.Errorf("TestMAL_Manga_List_Update() got nil as result")
 				return
 			}
 
 			if got.Status != tt.wantStatus {
-				t.Errorf("UpdateMangaStatus() wrong status - want: %s, got: %s", tt.wantStatus, got.Status)
+				t.Errorf("TestMAL_Manga_List_Update() wrong status - want: %s, got: %s", tt.wantStatus, got.Status)
 				return
 			}
 

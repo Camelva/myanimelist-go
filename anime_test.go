@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestMAL_AnimeSearch(t *testing.T) {
+func TestMAL_Anime_Search(t *testing.T) {
 	type args struct {
 		search   string
 		settings PagingSettings
@@ -23,24 +23,25 @@ func TestMAL_AnimeSearch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.AnimeSearch(tt.args.search, tt.args.settings)
+			got, err := ExampleMAL.Anime.Search(tt.args.search, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AnimeSearch() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Anime_Search() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Errorf("AnimeSearch() got nil as result")
+				t.Errorf("TestMAL_Anime_Search() got nil as result")
 				return
 			}
 			if len(got.Data) < tt.args.settings.Limit {
-				t.Errorf("AnimeSearch() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
+				t.Errorf("TestMAL_Anime_Search() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
 			}
 		})
 	}
 }
 
 var exampleAnimeSearchResult = &AnimeSearchResult{
-	Data: nil,
+	parent: &ExampleMAL.Anime,
+	Data:   nil,
 	Paging: Paging{
 		Previous: "https://api.myanimelist.net/v2/anime?offset=0&limit=3&q=piece",
 		Next:     "https://api.myanimelist.net/v2/anime?offset=6&limit=3&q=piece",
@@ -64,7 +65,7 @@ func TestAnimeSearchResult_Next(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Next(ExampleMAL)
+			got, err := tt.args.obj.Next()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TestAnimeSearchResult_Next() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
@@ -97,7 +98,7 @@ func TestAnimeSearchResult_Prev(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Prev(ExampleMAL)
+			got, err := tt.args.obj.Prev()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TestAnimeSearchResult_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
@@ -114,7 +115,7 @@ func TestAnimeSearchResult_Prev(t *testing.T) {
 	}
 }
 
-func TestMAL_AnimeDetails(t *testing.T) {
+func TestMAL_Anime_Details(t *testing.T) {
 	type args struct {
 		animeID int
 		fields  []string
@@ -140,19 +141,19 @@ func TestMAL_AnimeDetails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.AnimeDetails(tt.args.animeID, tt.args.fields...)
+			got, err := ExampleMAL.Anime.Details(tt.args.animeID, tt.args.fields...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AnimeDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Anime_Details() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("AnimeDetails() got = %v, want %v", got, tt.want)
+				t.Errorf("TestMAL_Anime_Details() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestMAL_AnimeRanking(t *testing.T) {
+func TestMAL_Anime_Top(t *testing.T) {
 	type args struct {
 		rankingType string
 		settings    PagingSettings
@@ -170,33 +171,34 @@ func TestMAL_AnimeRanking(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.AnimeRanking(tt.args.rankingType, tt.args.settings)
+			got, err := ExampleMAL.Anime.Top(tt.args.rankingType, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("AnimeRanking() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Anime_Top() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Errorf("AnimeRanking() got nil as result")
+				t.Errorf("TestMAL_Anime_Top() got nil as result")
 				return
 			}
 			if len(got.Data) < tt.args.settings.Limit {
-				t.Errorf("AnimeRanking() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
+				t.Errorf("TestMAL_Anime_Top() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
 			}
 		})
 	}
 }
 
-var exampleAnimeRanking = &AnimeRanking{
-	Data: nil,
+var exampleAnimeTop = &AnimeTop{
+	parent: &ExampleMAL.Anime,
+	Data:   nil,
 	Paging: Paging{
 		Previous: "https://api.myanimelist.net/v2/anime/ranking?offset=0&limit=3",
 		Next:     "https://api.myanimelist.net/v2/anime/ranking?offset=6&limit=3",
 	},
 }
 
-func TestAnimeRanking_Next(t *testing.T) {
+func TestAnimeTop_Next(t *testing.T) {
 	type args struct {
-		obj *AnimeRanking
+		obj *AnimeTop
 	}
 	tests := []struct {
 		name    string
@@ -205,31 +207,31 @@ func TestAnimeRanking_Next(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleAnimeRanking},
+			args:    args{exampleAnimeTop},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Next(ExampleMAL)
+			got, err := tt.args.obj.Next()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestAnimeRanking_Next() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestAnimeTop_Next() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestAnimeRanking_Next() got nil")
+				t.Error("TestAnimeTop_Next() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestAnimeRanking_Next() got no data!")
+				t.Error("TestAnimeTop_Next() got no data!")
 				return
 			}
 		})
 	}
 }
-func TestAnimeRanking_Prev(t *testing.T) {
+func TestAnimeTop_Prev(t *testing.T) {
 	type args struct {
-		obj *AnimeRanking
+		obj *AnimeTop
 	}
 	tests := []struct {
 		name    string
@@ -238,30 +240,30 @@ func TestAnimeRanking_Prev(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleAnimeRanking},
+			args:    args{exampleAnimeTop},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Prev(ExampleMAL)
+			got, err := tt.args.obj.Prev()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestAnimeRanking_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestAnimeTop_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestAnimeRanking_Prev() got nil")
+				t.Error("TestAnimeTop_Prev() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestAnimeRanking_Prev() got no data!")
+				t.Error("TestAnimeTop_Prev() got no data!")
 				return
 			}
 		})
 	}
 }
 
-func TestMAL_SeasonalAnime(t *testing.T) {
+func TestMAL_Anime_Seasonal(t *testing.T) {
 	type args struct {
 		year     int
 		season   string
@@ -281,33 +283,34 @@ func TestMAL_SeasonalAnime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.SeasonalAnime(tt.args.year, tt.args.season, tt.args.sort, tt.args.settings)
+			got, err := ExampleMAL.Anime.Seasonal(tt.args.year, tt.args.season, tt.args.sort, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SeasonalAnime() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Anime_Seasonal() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Errorf("SeasonalAnime() got nil as result")
+				t.Errorf("TestMAL_Anime_Seasonal() got nil as result")
 				return
 			}
 			if len(got.Data) < tt.args.settings.Limit {
-				t.Errorf("SeasonalAnime() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
+				t.Errorf("TestMAL_Anime_Seasonal() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
 			}
 		})
 	}
 }
 
-var exampleSeasonalAnime = &SeasonalAnime{
-	Data: nil,
+var exampleAnimeSeasonal = &AnimeSeasonal{
+	parent: &ExampleMAL.Anime,
+	Data:   nil,
 	Paging: Paging{
 		Previous: "https://api.myanimelist.net/v2/anime/season/2015/fall?offset=0&limit=3&sort=anime_score",
 		Next:     "https://api.myanimelist.net/v2/anime/season/2015/fall?offset=6&limit=3&sort=anime_score",
 	},
 }
 
-func TestSeasonalAnime_Next(t *testing.T) {
+func TestAnimeSeasonal_Next(t *testing.T) {
 	type args struct {
-		obj *SeasonalAnime
+		obj *AnimeSeasonal
 	}
 	tests := []struct {
 		name    string
@@ -316,31 +319,31 @@ func TestSeasonalAnime_Next(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleSeasonalAnime},
+			args:    args{exampleAnimeSeasonal},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Next(ExampleMAL)
+			got, err := tt.args.obj.Next()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestSeasonalAnime_Next() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestAnimeSeasonal_Next() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestSeasonalAnime_Next() got nil")
+				t.Error("TestAnimeSeasonal_Next() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestSeasonalAnime_Next() got no data!")
+				t.Error("TestAnimeSeasonal_Next() got no data!")
 				return
 			}
 		})
 	}
 }
-func TestSeasonalAnime_Prev(t *testing.T) {
+func TestAnimeSeasonal_Prev(t *testing.T) {
 	type args struct {
-		obj *SeasonalAnime
+		obj *AnimeSeasonal
 	}
 	tests := []struct {
 		name    string
@@ -349,30 +352,30 @@ func TestSeasonalAnime_Prev(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleSeasonalAnime},
+			args:    args{exampleAnimeSeasonal},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Prev(ExampleMAL)
+			got, err := tt.args.obj.Prev()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestSeasonalAnime_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestAnimeSeasonal_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestSeasonalAnime_Prev() got nil")
+				t.Error("TestAnimeSeasonal_Prev() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestSeasonalAnime_Prev() got no data!")
+				t.Error("TestAnimeSeasonal_Prev() got no data!")
 				return
 			}
 		})
 	}
 }
 
-func TestMAL_SuggestedAnime(t *testing.T) {
+func TestMAL_Anime_Suggestions(t *testing.T) {
 	type args struct {
 		settings PagingSettings
 	}
@@ -389,33 +392,34 @@ func TestMAL_SuggestedAnime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.SuggestedAnime(tt.args.settings)
+			got, err := ExampleMAL.Anime.Suggestions(tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("SuggestedAnime() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Anime_Suggestions() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Errorf("SuggestedAnime() got nil as result")
+				t.Errorf("TestMAL_Anime_Suggestions() got nil as result")
 				return
 			}
 			if len(got.Data) < tt.args.settings.Limit {
-				t.Errorf("SuggestedAnime() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
+				t.Errorf("TestMAL_Anime_Suggestions() got = %v, want %v", len(got.Data), tt.args.settings.Limit)
 			}
 		})
 	}
 }
 
-var exampleSuggestedAnime = &SuggestedAnime{
-	Data: nil,
+var exampleAnimeSuggestions = &AnimeSuggestions{
+	parent: &ExampleMAL.Anime,
+	Data:   nil,
 	Paging: Paging{
 		Previous: "https://api.myanimelist.net/v2/anime/suggestions?offset=0&limit=3",
 		Next:     "https://api.myanimelist.net/v2/anime/suggestions?offset=6&limit=3",
 	},
 }
 
-func TestSuggestedAnime_Next(t *testing.T) {
+func TestAnimeSuggestions_Next(t *testing.T) {
 	type args struct {
-		obj *SuggestedAnime
+		obj *AnimeSuggestions
 	}
 	tests := []struct {
 		name    string
@@ -424,31 +428,31 @@ func TestSuggestedAnime_Next(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleSuggestedAnime},
+			args:    args{exampleAnimeSuggestions},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Next(ExampleMAL)
+			got, err := tt.args.obj.Next()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestSuggestedAnime_Next() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestAnimeSuggestions_Next() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestSuggestedAnime_Next() got nil")
+				t.Error("TestAnimeSuggestions_Next() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestSuggestedAnime_Next() got no data!")
+				t.Error("TestAnimeSuggestions_Next() got no data!")
 				return
 			}
 		})
 	}
 }
-func TestSuggestedAnime_Prev(t *testing.T) {
+func TestAnimeSuggestions_Prev(t *testing.T) {
 	type args struct {
-		obj *SuggestedAnime
+		obj *AnimeSuggestions
 	}
 	tests := []struct {
 		name    string
@@ -457,23 +461,23 @@ func TestSuggestedAnime_Prev(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleSuggestedAnime},
+			args:    args{exampleAnimeSuggestions},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Prev(ExampleMAL)
+			got, err := tt.args.obj.Prev()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestSuggestedAnime_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestAnimeSuggestions_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestSuggestedAnime_Prev() got nil")
+				t.Error("TestAnimeSuggestions_Prev() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestSuggestedAnime_Prev() got no data!")
+				t.Error("TestAnimeSuggestions_Prev() got no data!")
 				return
 			}
 		})

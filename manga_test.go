@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestMAL_MangaSearch(t *testing.T) {
+func TestMAL_Manga_Search(t *testing.T) {
 	type args struct {
 		search   string
 		settings PagingSettings
@@ -23,24 +23,25 @@ func TestMAL_MangaSearch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.MangaSearch(tt.args.search, tt.args.settings)
+			got, err := ExampleMAL.Manga.Search(tt.args.search, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MangaSearch() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Manga_Search() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Errorf("MangaSearch() got nil as result")
+				t.Errorf("TestMAL_Manga_Search() got nil as result")
 				return
 			}
 			if len(got.Data) < tt.args.settings.Limit {
-				t.Errorf("MangaSearch() got = %d, want %d", len(got.Data), tt.args.settings.Limit)
+				t.Errorf("TestMAL_Manga_Search() got = %d, want %d", len(got.Data), tt.args.settings.Limit)
 			}
 		})
 	}
 }
 
 var exampleMangaSearchResult = &MangaSearchResult{
-	Data: nil,
+	parent: &ExampleMAL.Manga,
+	Data:   nil,
 	Paging: Paging{
 		Previous: "https://api.myanimelist.net/v2/manga?offset=0&limit=3&q=piece",
 		Next:     "https://api.myanimelist.net/v2/manga?offset=6&limit=3&q=piece",
@@ -64,7 +65,7 @@ func TestMangaSearchResult_Next(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Next(ExampleMAL)
+			got, err := tt.args.obj.Next()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TestMangaSearchResult_Next() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
@@ -97,7 +98,7 @@ func TestMangaSearchResult_Prev(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Prev(ExampleMAL)
+			got, err := tt.args.obj.Prev()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TestMangaSearchResult_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
@@ -114,7 +115,7 @@ func TestMangaSearchResult_Prev(t *testing.T) {
 	}
 }
 
-func TestMAL_MangaDetails(t *testing.T) {
+func TestMAL_Manga_Details(t *testing.T) {
 	type args struct {
 		mangaID int
 		fields  []string
@@ -140,19 +141,19 @@ func TestMAL_MangaDetails(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.MangaDetails(tt.args.mangaID, tt.args.fields...)
+			got, err := ExampleMAL.Manga.Details(tt.args.mangaID, tt.args.fields...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MangaDetails() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Manga_Details() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MangaDetails() got = %v, want %v", got, tt.want)
+				t.Errorf("TestMAL_Manga_Details() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestMAL_MangaRanking(t *testing.T) {
+func TestMAL_Manga_Top(t *testing.T) {
 	type args struct {
 		rankingType string
 		settings    PagingSettings
@@ -170,33 +171,34 @@ func TestMAL_MangaRanking(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.MangaRanking(tt.args.rankingType, tt.args.settings)
+			got, err := ExampleMAL.Manga.Top(tt.args.rankingType, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MangaRanking() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Manga_Top() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Errorf("MangaRanking() got nil as result")
+				t.Errorf("TestMAL_Manga_Top() got nil as result")
 				return
 			}
 			if len(got.Data) < tt.args.settings.Limit {
-				t.Errorf("MangaRanking() got = %d, want %d", len(got.Data), tt.args.settings.Limit)
+				t.Errorf("TestMAL_Manga_Top() got = %d, want %d", len(got.Data), tt.args.settings.Limit)
 			}
 		})
 	}
 }
 
-var exampleMangaRanking = &MangaRanking{
-	Data: nil,
+var exampleMangaTop = &MangaTop{
+	parent: &ExampleMAL.Manga,
+	Data:   nil,
 	Paging: Paging{
 		Previous: "https://api.myanimelist.net/v2/manga/ranking?offset=0&limit=3",
 		Next:     "https://api.myanimelist.net/v2/manga/ranking?offset=6&limit=3",
 	},
 }
 
-func TestMangaRanking_Next(t *testing.T) {
+func TestMangaTop_Next(t *testing.T) {
 	type args struct {
-		obj *MangaRanking
+		obj *MangaTop
 	}
 	tests := []struct {
 		name    string
@@ -205,31 +207,31 @@ func TestMangaRanking_Next(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleMangaRanking},
+			args:    args{exampleMangaTop},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Next(ExampleMAL)
+			got, err := tt.args.obj.Next()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestMangaRanking_Next() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestMangaTop_Next() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestMangaRanking_Next() got nil")
+				t.Error("TestMangaTop_Next() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestMangaRanking_Next() got no data!")
+				t.Error("TestMangaTop_Next() got no data!")
 				return
 			}
 		})
 	}
 }
-func TestMangaRanking_Prev(t *testing.T) {
+func TestMangaTop_Prev(t *testing.T) {
 	type args struct {
-		obj *MangaRanking
+		obj *MangaTop
 	}
 	tests := []struct {
 		name    string
@@ -238,23 +240,23 @@ func TestMangaRanking_Prev(t *testing.T) {
 	}{
 		{
 			name:    "Basic example",
-			args:    args{exampleMangaRanking},
+			args:    args{exampleMangaTop},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.args.obj.Prev(ExampleMAL)
+			got, err := tt.args.obj.Prev()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("TestMangaRanking_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
+				t.Errorf("TestMangaTop_Prev() error = %v, wantErr %v\n", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("TestMangaRanking_Prev() got nil")
+				t.Error("TestMangaTop_Prev() got nil")
 				return
 			}
 			if len(got.Data) < 1 {
-				t.Error("TestMangaRanking_Prev() got no data!")
+				t.Error("TestMangaTop_Prev() got no data!")
 				return
 			}
 		})

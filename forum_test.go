@@ -4,20 +4,20 @@ import (
 	"testing"
 )
 
-func TestMAL_ForumBoards(t *testing.T) {
+func TestMAL_Forum_Boards(t *testing.T) {
 	mal := ExampleMAL
-	got, err := mal.ForumBoards()
+	got, err := mal.Forum.Boards()
 	if err != nil {
-		t.Errorf("ForumBoards() error = %v", err)
+		t.Errorf("TestMAL_Forum_Boards() error = %v", err)
 		return
 	}
 	if got == nil {
-		t.Errorf("ForumBoards() got nil as result")
+		t.Errorf("TestMAL_Forum_Boards() got nil as result")
 		return
 	}
 }
 
-func TestMAL_ForumSearchTopics(t *testing.T) {
+func TestMAL_Forum_Search(t *testing.T) {
 	type args struct {
 		searchOpts ForumSearchSettings
 		settings   PagingSettings
@@ -45,20 +45,20 @@ func TestMAL_ForumSearchTopics(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mal := ExampleMAL
-			got, err := mal.ForumSearchTopics(tt.args.searchOpts, tt.args.settings)
+			got, err := mal.Forum.Search(tt.args.searchOpts, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ForumSearchTopics() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Forum_Search() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Errorf("ForumSearchTopics() got nil as result")
+				t.Errorf("TestMAL_Forum_Search() got nil as result")
 				return
 			}
 		})
 	}
 }
 
-func TestMAL_ForumTopic(t *testing.T) {
+func TestMAL_Forum_Topic(t *testing.T) {
 	type args struct {
 		topicID  int
 		settings PagingSettings
@@ -79,17 +79,17 @@ func TestMAL_ForumTopic(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mal := ExampleMAL
-			got, err := mal.ForumTopic(tt.args.topicID, tt.args.settings)
+			got, err := mal.Forum.Topic(tt.args.topicID, tt.args.settings)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ForumTopic() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_Forum_Topic() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("ForumTopic() got nil as result")
+				t.Error("TestMAL_Forum_Topic() got nil as result")
 				return
 			}
 			if got.Data.Title != tt.wantTitle {
-				t.Errorf("ForumTopic() expected title: %v, got: %v", tt.wantTitle, got.Data.Title)
+				t.Errorf("TestMAL_Forum_Topic() expected title: %v, got: %v", tt.wantTitle, got.Data.Title)
 				return
 			}
 		})

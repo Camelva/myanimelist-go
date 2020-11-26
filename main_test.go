@@ -40,6 +40,12 @@ func init() {
 	if data.AccessToken == "" {
 		log.Fatalln("access token is required to run any test")
 	}
+	if data.ClientID == "" {
+		data.ClientID = "mock"
+	}
+	if data.ClientSecret == "" {
+		data.ClientSecret = "mock"
+	}
 
 	testClient, err := New(Config{
 		ClientID:     data.ClientID,
@@ -52,8 +58,8 @@ func init() {
 		log.Fatalf("can't init testClient: %s", err)
 	}
 
-	testClient.auth.userToken = data.AccessToken
-	testClient.auth.refreshToken = data.RefreshToken
+	testClient.Auth.userToken = data.AccessToken
+	testClient.Auth.refreshToken = data.RefreshToken
 
 	ExampleMAL = testClient
 }

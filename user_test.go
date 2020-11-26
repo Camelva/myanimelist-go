@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestMAL_UserInformation(t *testing.T) {
+func TestMAL_User_Info(t *testing.T) {
 	tests := []struct {
 		name    string
 		wantErr bool
@@ -16,17 +16,17 @@ func TestMAL_UserInformation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ExampleMAL.UserInformation()
+			got, err := ExampleMAL.User.Info()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UserInformation() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TestMAL_User_Info() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got == nil {
-				t.Error("UserInformation() Got nil")
+				t.Error("TestMAL_User_Info() Got nil")
 				return
 			}
 			if got.ID == 0 {
-				t.Error("UserInformation() Got user with empty ID")
+				t.Error("TestMAL_User_Info() Got user with empty ID")
 				return
 			}
 		})
